@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Emergency Lighting | Interactive Power Path Simulator</title>
+<style>
+  :root{
+    --bg:#080e1b; --panel:#0f1828; --panel-2:#132036; --panel-3:#18273f;
+    --line:#233349; --line-2:#2e4260;
+    --text:#e9f0f9; --muted:#9db0c7; --soft:#72859e;
+    --normal:#4ee1a2; --em:#ffba71; --sense:#78b8ff; --danger:#fd8292;
+    --accent:#78b8ff; --accent-bg:rgba(120,184,255,.10);
+    --shadow:0 18px 50px rgba(0,0,0,.28);
+    --radius:14px;
+    /* SVG palette (swapped in light theme) */
+    --sv-off:#5f7288; --sv-blade-off:#8396ad; --sv-contact:#c18d5c; --sv-stub:#4e6178; --sv-ring:#0b1422;
+    --sv-bar:#2c4054; --lamp-bar:#ffca7b; --bulb-off:#55687d; --node-state-off:#9baabd;
+    --sv-track:#374359; --sv-track-stroke:#70829b; --sv-knob:#a7b3c2;
+    --sv-track-on:#1f5747; --sv-track-on-stroke:#45ac84;
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;min-height:100vh;background:
+      radial-gradient(1100px 560px at 70% -220px,#16294a 0%,transparent 72%),
+      radial-gradient(700px 420px at -10% 110%,#0f2033 0%,transparent 70%),var(--bg);
+    color:var(--text);line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased}
+  button,input{font:inherit;color:inherit}
+  button{cursor:pointer}
+  :is(button,input,a,[role="button"],tr[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  a{color:#9ac9ff}a:hover{color:#cfe5ff}
+
+  .page{width:min(1480px,100%);margin:0 auto;padding:26px clamp(14px,2.4vw,36px) 48px}
+
+  /* ---------- Header ---------- */
+  .topbar{display:flex;gap:24px;justify-content:space-between;align-items:flex-end;margin-bottom:22px}
+  .eyebrow{display:flex;gap:10px;align-items:center;text-transform:uppercase;letter-spacing:1.8px;font-size:11px;font-weight:800;color:var(--accent);margin-bottom:10px}
+  .eyebrow .sep{color:#3f5a7a}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(140deg,#23406a,#1a2f4f);display:inline-grid;place-items:center;color:#b7dcff;font-weight:900;font-size:15px;letter-spacing:0;border:1px solid #33507a}
+  h1{margin:0;font-size:clamp(26px,3vw,40px);line-height:1.1;font-weight:780;letter-spacing:-1.1px}
+  h1 .accent{color:#91c6ff}
+  .dek{margin:10px 0 0;max-width:780px;font-size:15px;color:var(--muted)}
+  .theme-btn{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--panel-2);font-size:12.5px;font-weight:700;white-space:nowrap;transition:background .2s,border-color .2s}
+  .theme-btn:hover{background:var(--panel-3);border-color:#5b7fa8}
+  .theme-icon{font-size:15px;line-height:1}
+
+  /* ---------- Main grid ---------- */
+  .main-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
+  .panel{background:linear-gradient(160deg,rgba(21,34,54,.97),rgba(13,22,37,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .section-label{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:800;color:var(--soft);margin-bottom:8px}
+
+  /* Sidebar */
+  .sidebar{padding:20px 20px 18px;position:sticky;top:16px}
+  .sidebar-group + .sidebar-group{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+  .control-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .control-row:last-of-type{border-bottom:none}
+  .control-title{font-size:13.5px;font-weight:680;line-height:1.3}
+  .control-desc{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35}
+  .switch{border:0;background:none;padding:4px;flex:0 0 auto}
+  .switch-track{position:relative;display:block;width:46px;height:26px;border-radius:30px;background:#33425a;border:1px solid #56667a;transition:.18s}
+  .switch-track:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#a4b3c5;transition:transform .18s,background .18s}
+  .switch[aria-checked="true"] .switch-track{background:#1f5747;border-color:#3fae88}
+  .switch[aria-checked="true"] .switch-track:after{transform:translateX(20px);background:var(--normal)}
+  .switch.em-toggle[aria-checked="true"] .switch-track{background:#5e4029;border-color:#bb8552}
+  .switch.em-toggle[aria-checked="true"] .switch-track:after{background:var(--em)}
+  .range-wrap{padding:14px 0 6px;border-bottom:1px solid var(--line)}
+  .range-head{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:680}
+  .range-head{align-items:center}
+  .range-head output{color:var(--em);font-variant-numeric:tabular-nums;font-weight:800;min-width:3.2ch;text-align:right}
+  .range-right{display:inline-flex;align-items:center;gap:8px}
+  .dim-off{padding:4px 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--panel-2);font-size:11px;font-weight:800;letter-spacing:.6px;transition:.15s}
+  .dim-off:hover:not(:disabled){border-color:var(--danger);color:var(--danger)}
+  .dim-off:disabled{opacity:.45;cursor:default}
+  input[type="range"]{accent-color:var(--em);width:100%;margin:12px 0 4px}
+  .minmax{display:flex;justify-content:space-between;color:var(--soft);font-size:11px}
+  .hint{font-size:12px;color:var(--soft);line-height:1.55;margin-top:10px}
+  .hint strong{color:var(--muted)}
+
+  .scenarios{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .quick-btn{display:flex;align-items:center;gap:8px;text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:9px;padding:10px 10px;font-size:12px;font-weight:700;line-height:1.25;color:#cfdced;transition:.15s}
+  .quick-btn:hover{background:var(--panel-3);border-color:#5d7fa6}
+  .quick-btn .pip{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--normal)}
+  .quick-btn .pip.off{background:transparent;border:2px solid var(--normal)}
+  .quick-btn .pip.em{background:var(--em)}
+  .quick-btn .pip.bad{background:var(--danger)}
+  .quick-btn.highlight{background:rgba(255,186,113,.10);border-color:#a56b42;color:#ffdcb2}
+  .quick-btn.highlight:hover{background:rgba(255,186,113,.18)}
+
+  /* Stage */
+  .workspace{min-width:0;display:flex;flex-direction:column;gap:16px}
+  .stage{overflow:hidden}
+  .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line);background:rgba(6,12,22,.35)}
+  .mode-option{position:relative;display:flex;gap:12px;align-items:center;text-align:left;background:transparent;border:0;border-right:1px solid var(--line);padding:15px 18px;color:var(--muted);transition:background .15s}
+  .mode-option:last-child{border-right:0}
+  .mode-option:hover{background:rgba(120,184,255,.05)}
+  .mode-option.active{background:var(--accent-bg);color:var(--text)}
+  .mode-option.active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--accent)}
+  .mode-n{flex:0 0 auto;width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:var(--panel-3);border:1px solid var(--line-2);font-weight:850;font-size:13px;color:#aac1db}
+  .mode-option.active .mode-n{background:#24547e;border-color:#3f7cb3;color:#eef8ff}
+  .mode-copy{min-width:0}
+  .mode-std{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:1px}
+  .mode-option strong{display:block;font-size:14px;line-height:1.25;color:inherit}
+  .mode-option small{display:block;font-size:12px;color:var(--soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .stage-head{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 20px 4px}
+  .stage-title{font-weight:780;font-size:16px;letter-spacing:-.2px}
+  .stage-subtitle{font-size:13px;color:var(--muted);margin-top:2px}
+  .status{display:inline-flex;gap:8px;align-items:center;border:1px solid #2f6a57;background:rgba(78,225,162,.10);color:#9ff0cb;padding:7px 12px;border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.4px;white-space:nowrap}
+  .status .dot{width:8px;height:8px;border-radius:50%;background:var(--normal);box-shadow:0 0 12px var(--normal)}
+  .status.dark{border-color:#7a4651;background:rgba(253,130,146,.10);color:#ffb3bd}
+  .status.dark .dot{background:var(--danger);box-shadow:0 0 12px var(--danger)}
+
+  .diagram-wrap{padding:4px 10px 6px;overflow-x:auto}
+  #diagram{display:block;width:100%;min-width:680px;height:auto;overflow:visible}
+
+  .readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line);background:rgba(6,12,22,.30)}
+  .metric{padding:14px 20px;min-width:0;border-right:1px solid var(--line)}
+  .metric:last-child{border-right:0}
+  .metric-label{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;font-weight:780;color:var(--soft)}
+  .metric-value{font-size:19px;font-weight:780;letter-spacing:-.4px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .metric-sub{font-size:12px;color:var(--muted);margin-top:2px;min-height:18px}
+  .metric-value.green{color:var(--normal)}.metric-value.amber{color:var(--em)}.metric-value.red{color:var(--danger)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:11px 20px 12px;border-top:1px solid var(--line)}
+  .key{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+  .key-line{width:24px;height:3px;border-radius:2px;background:var(--normal)}
+  .key-line.em{background:var(--em)}
+  .key-line.sense{height:2px;background:repeating-linear-gradient(to right,var(--sense) 0 5px,transparent 5px 9px)}
+  .key-line.off{background:#47556b}
+  .key-caption{margin-left:auto;font-size:11.5px;color:var(--soft)}
+
+  .explanation{padding:20px 22px}
+  .explanation h2{font-size:16px;margin:0 0 8px;letter-spacing:-.2px}
+  .explanation p{color:#c3d3e4;margin:0;font-size:14.5px;line-height:1.7;max-width:95ch}
+  .note{border-left:3px solid #4f86bd;background:rgba(120,184,255,.08);padding:12px 14px;border-radius:4px 9px 9px 4px;font-size:13px;color:#bed2e7;line-height:1.65;margin-top:14px}
+  .note strong{color:#e6f1ff}
+
+  /* Lower */
+  .lower{margin-top:18px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr);gap:18px;align-items:start}
+  .lower .panel{padding:20px 22px}
+  .lower h2{font-size:16px;margin:0 0 4px;letter-spacing:-.2px}
+  .panel-sub{font-size:12.5px;color:var(--soft);margin:0 0 12px}
+  .table-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--soft);font-weight:780}
+  td,th{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  td{color:#bdd0e3}
+  td:first-child{font-weight:720;color:var(--text);white-space:nowrap}
+  tbody tr{cursor:pointer;transition:background .15s}
+  tbody tr:hover{background:rgba(120,184,255,.05)}
+  tbody tr.active{background:var(--accent-bg)}
+  tbody tr.active td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+
+  .ref-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+  .ref-list a{display:block;text-decoration:none;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);transition:.15s}
+  .ref-list a:hover{border-color:#4f7aa8;background:var(--panel-3)}
+  .ref-src{display:block;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;font-weight:800;color:var(--soft)}
+  .ref-title{display:block;font-size:13.5px;font-weight:700;color:#a9d2ff;margin-top:2px}
+  .ref-title:after{content:" ↗";color:var(--soft);font-weight:600}
+  .ref-desc{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+  .disclaimer{font-size:12.5px;color:var(--muted);line-height:1.6;margin:0 0 14px}
+
+  .caution{margin-top:18px;display:flex;gap:14px;padding:16px 20px;border:1px solid #6b4d33;background:rgba(255,186,113,.07);border-radius:var(--radius)}
+  .caution-icon{flex:0 0 auto;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:rgba(255,186,113,.16);color:var(--em);font-weight:900}
+  .caution p{margin:0;font-size:13px;color:#d9c8b4;line-height:1.65}
+  .caution strong{color:#ffdcb2}
+
+  /* SVG */
+  svg text{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none}
+  .wire-base{stroke:#2f3f55;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .wire-base.sense{stroke:#34435b;stroke-width:2.2;stroke-dasharray:5 7}
+  .wire-ready{stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+  .wire-ready.normal{stroke:var(--normal)}.wire-ready.em{stroke:var(--em)}
+  .wire-live{stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+  .wire-live.normal{stroke:var(--normal)}.wire-live.em{stroke:var(--em)}
+  .wire-dash{stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 19;animation:flow 1.55s linear infinite}
+  .wire-dash.normal{stroke:#cbffe5}.wire-dash.em{stroke:#ffe2b5}
+  .wire-dash.sense{stroke:#a6d6ff;stroke-width:2.7;stroke-dasharray:4 14;animation-duration:2.25s}
+  .wire-live.sense{stroke:var(--sense);stroke-width:2;stroke-dasharray:5 7;opacity:.9}
+  @keyframes flow{to{stroke-dashoffset:-80}}
+  .node-bg{fill:#15253b;stroke:#46607e;stroke-width:1.5}
+  .node-bg.normal.on{stroke:#389f81}.node-bg.em.on{stroke:#c38c56}
+  .node-head{fill:#f1f7ff;font-size:15px;font-weight:750}
+  .node-detail{fill:#aac0d7;font-size:11.5px}
+  .node-state{font-size:10.5px;font-weight:850;letter-spacing:.45px}
+  .node-icon-normal{fill:#1c584b;stroke:#428d75}.node-icon-em{fill:#62472f;stroke:#a97b50}
+  .relay-bg{fill:#132c44;stroke:#5f8db2;stroke-width:1.6}
+  .relay-head{fill:#cbe4ff;font-size:15px;font-weight:840}
+  .relay-port{font-size:10px;fill:#91adc6;font-weight:700;letter-spacing:.2px}
+  .relay-divider{stroke:#385470;stroke-width:1}
+  .fixture-bg{fill:#13283a;stroke:#4f6a7b;stroke-width:1.5}
+  .fixture-bg.lit{stroke:#ffcb88;fill:#3b342b}
+  .fixture-label{fill:#eaf5ff;font-size:14px;font-weight:770}
+  .fixture-small{fill:#a5b8cc;font-size:11px}
+  .annotation{fill:#8196ae;font-size:10.5px;font-weight:650;letter-spacing:.5px}
+  .clickable{cursor:pointer}
+  .clickable:hover .node-bg,.clickable:hover .ctrl-bg{stroke:#d1e4ff;stroke-width:2.3}
+  .clickable:focus{outline:none}
+  .clickable:focus-visible .node-bg,.clickable:focus-visible .ctrl-bg{stroke:#e4f5ff;stroke-width:2.6}
+  .ctrl-bg{fill:#1a2a40;stroke:#536880;stroke-width:1.4}
+  .ctrl-text{fill:#e7f0ff;font-size:14px;font-weight:790}
+  .ctrl-sub{fill:#9ab1c9;font-size:11px}
+  .click-hint{fill:#6f86a0;font-size:9.5px;font-weight:700;letter-spacing:.6px}
+
+  /* ---------- Light theme ---------- */
+  html[data-theme="light"]{
+    color-scheme:light;
+    --bg:#eef3f9;--panel:#ffffff;--panel-2:#f5f8fc;--panel-3:#eaf1f9;
+    --line:#d6e0eb;--line-2:#c3d1e0;
+    --text:#172a41;--muted:#4d6580;--soft:#64798f;
+    --normal:#087d5e;--em:#a45a08;--sense:#166ab1;--danger:#b72f4e;
+    --accent:#1767ad;--accent-bg:rgba(23,103,173,.08);
+    --shadow:0 10px 30px rgba(26,55,90,.08);
+    --sv-off:#aab8c7;--sv-blade-off:#7f93a8;--sv-contact:#c99a63;--sv-stub:#b7c5d4;--sv-ring:#ffffff;
+    --sv-bar:#e1e8f0;--lamp-bar:#e0973a;--bulb-off:#c3cfdb;--node-state-off:#66788b;
+    --sv-track:#dbe4ee;--sv-track-stroke:#a0b2c5;--sv-knob:#7c90a6;
+    --sv-track-on:#c3ebdc;--sv-track-on-stroke:#4fa287;
+  }
+  html[data-theme="light"] body{background:radial-gradient(1100px 600px at 65% -200px,#d6e7fb 0%,transparent 75%),var(--bg)}
+  html[data-theme="light"] a{color:#125aab}html[data-theme="light"] a:hover{color:#093e80}
+  html[data-theme="light"] .eyebrow .sep{color:#9fb5cc}
+  html[data-theme="light"] h1 .accent{color:#1a68a8}
+  html[data-theme="light"] .brand-mark{background:#dcebfc;color:#15589e;border-color:#b7d1ee}
+  html[data-theme="light"] .panel{background:linear-gradient(160deg,#ffffff,#fafcfe)}
+  html[data-theme="light"] .switch-track{background:#d7e1eb;border-color:#a0b2c5}
+  html[data-theme="light"] .switch-track:after{background:#748ba3}
+  html[data-theme="light"] .switch[aria-checked="true"] .switch-track{background:#b7e8d7;border-color:#5ca78f}
+  html[data-theme="light"] .switch.em-toggle[aria-checked="true"] .switch-track{background:#f5d5a9;border-color:#b98648}
+  html[data-theme="light"] .quick-btn{color:#2e4a68}
+  html[data-theme="light"] .quick-btn.highlight{background:#fff3e4;border-color:#dca66b;color:#884b14}
+  html[data-theme="light"] .quick-btn.highlight:hover{background:#fde8cd}
+  html[data-theme="light"] .tabs,html[data-theme="light"] .readout{background:#f6f9fc}
+  html[data-theme="light"] .mode-n{color:#526a83}
+  html[data-theme="light"] .mode-option.active .mode-n{background:#cfe4fa;border-color:#8db8e2;color:#124c81}
+  html[data-theme="light"] .status{background:#e2f4eb;border-color:#a1d4bc;color:#096648}
+  html[data-theme="light"] .status.dark{background:#fff0f0;border-color:#e9b7c2;color:#aa304e}
+  html[data-theme="light"] .key-line.off{background:#b4c1cf}
+  html[data-theme="light"] .explanation p{color:#3a536e}
+  html[data-theme="light"] .note{background:#eef5ff;border-left-color:#4482c2;color:#3c5c7c}
+  html[data-theme="light"] .note strong{color:#1c4168}
+  html[data-theme="light"] td{color:#405a75}
+  html[data-theme="light"] .ref-title{color:#155ca6}
+  html[data-theme="light"] .caution{background:#fff7ec;border-color:#ecc89c}
+  html[data-theme="light"] .caution p{color:#6b4a26}
+  html[data-theme="light"] .caution strong{color:#7a3f0b}
+  html[data-theme="light"] .wire-base{stroke:#c9d4df}
+  html[data-theme="light"] .wire-base.sense{stroke:#c7d5e3}
+  html[data-theme="light"] .wire-ready{opacity:.42}
+  html[data-theme="light"] .wire-live{opacity:.72}
+  html[data-theme="light"] .wire-dash.normal{stroke:#034d3b}
+  html[data-theme="light"] .wire-dash.em{stroke:#734006}
+  html[data-theme="light"] .wire-dash.sense{stroke:#0f4d84}
+  html[data-theme="light"] .node-bg{fill:#ffffff;stroke:#9bb1c7}
+  html[data-theme="light"] .node-bg.normal.on{stroke:#328770}
+  html[data-theme="light"] .node-bg.em.on{stroke:#b88144}
+  html[data-theme="light"] .node-head{fill:#213b58}
+  html[data-theme="light"] .node-detail{fill:#516e89}
+  html[data-theme="light"] .node-icon-normal{fill:#e2f6ee;stroke:#6eb99d}
+  html[data-theme="light"] .node-icon-em{fill:#fff0dc;stroke:#dab079}
+  html[data-theme="light"] .relay-bg{fill:#eaf3fc;stroke:#7ea5c6}
+  html[data-theme="light"] .relay-head{fill:#174d79}
+  html[data-theme="light"] .relay-port{fill:#53728e}
+  html[data-theme="light"] .relay-divider{stroke:#b7cde1}
+  html[data-theme="light"] .fixture-bg{fill:#f0f6fb;stroke:#aabed0}
+  html[data-theme="light"] .fixture-bg.lit{fill:#fff0d8;stroke:#d3a25e}
+  html[data-theme="light"] .fixture-label{fill:#203950}
+  html[data-theme="light"] .fixture-small{fill:#5b7186}
+  html[data-theme="light"] .annotation{fill:#5d7790}
+  html[data-theme="light"] .ctrl-bg{fill:#f4f8fd;stroke:#9bb3ca}
+  html[data-theme="light"] .ctrl-text{fill:#29415a}
+  html[data-theme="light"] .ctrl-sub{fill:#566f89}
+  html[data-theme="light"] .click-hint{fill:#8197ad}
+  html[data-theme="light"] .clickable:hover .node-bg,html[data-theme="light"] .clickable:hover .ctrl-bg{stroke:#256faf}
+  html[data-theme="light"] .clickable:focus-visible .node-bg,html[data-theme="light"] .clickable:focus-visible .ctrl-bg{stroke:#0b5594}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:1180px){
+    .main-layout{grid-template-columns:270px minmax(0,1fr)}
+    .sidebar{padding:16px}
+    .lower{grid-template-columns:1fr}
+    .mode-option small{display:none}
+  }
+  @media(max-width:860px){
+    .page{padding:18px 12px 36px}
+    .topbar{flex-wrap:wrap;align-items:flex-start;gap:14px}
+    .main-layout{display:flex;flex-direction:column}
+    .sidebar{position:static;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+    .sidebar-group + .sidebar-group{margin-top:0;padding-top:0;border-top:0}
+    .workspace{display:contents}
+    .stage{order:1}.sidebar{order:2}.explanation{order:3}
+    .mode-option{padding:12px 12px;gap:9px}
+    .mode-n{display:none}
+    .key-caption{width:100%;margin:0}
+  }
+  @media(max-width:620px){
+    .sidebar{grid-template-columns:1fr}
+    .sidebar-group + .sidebar-group{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+    .readout{grid-template-columns:1fr}
+    .metric{border-right:0;border-bottom:1px solid var(--line);padding:11px 16px}
+    .metric:last-child{border-bottom:0}
+    .mode-option strong{font-size:12.5px}
+    .mode-std{font-size:9.5px}
+    .stage-head,.legend{padding-left:14px;padding-right:14px}
+    .explanation,.lower .panel{padding:16px}
+    td:first-child{white-space:normal}
+  }
+  @media(prefers-reduced-motion:reduce){.wire-dash{animation:none}.switch-track,.switch-track:after{transition:none}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow"><span class="brand-mark">∿</span> Interactive explainer <span class="sep">/</span> Emergency lighting controls</div>
+      <h1>Emergency lighting <span class="accent">power paths</span></h1>
+      <p class="dek">See how UL 924 control devices and UL 1008 transfer switches behave. Pick an arrangement, cut normal power, operate the controls, and follow the animated path to the luminaire.</p>
+    </div>
+    <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch to light mode" aria-pressed="false" title="Switch to light mode">
+      <span class="theme-icon" id="themeIcon" aria-hidden="true">☀</span><span id="themeText">Light mode</span>
+    </button>
+  </header>
+
+  <div class="main-layout">
+    <aside class="panel sidebar" aria-label="Simulation controls">
+      <div class="sidebar-group">
+        <div class="section-label">Inputs</div>
+        <div class="control-row">
+          <div><div class="control-title">Normal unswitched power</div><div class="control-desc" id="normalDesc">Normal branch / power sense</div></div>
+          <button type="button" id="normalBtn" class="switch" role="switch" aria-label="Normal unswitched power" aria-checked="true"><span class="switch-track"></span></button>
+        </div>
+        <div class="control-row">
+          <div><div class="control-title">Emergency source available</div><div class="control-desc" id="emDesc">Normally energized inverter output</div></div>
+          <button type="button" id="emBtn" class="switch em-toggle" role="switch" aria-label="Emergency power source available" aria-checked="true"><span class="switch-track"></span></button>
+        </div>
+        <div class="control-row">
+          <div><div class="control-title" id="wallTitle">Normal room switch</div><div class="control-desc" id="wallDesc">Provides the switched sense input</div></div>
+          <button type="button" id="wallBtn" class="switch" role="switch" aria-label="Room lighting switch" aria-checked="false"><span class="switch-track"></span></button>
+        </div>
+        <div class="control-row" id="overrideBlock" hidden>
+          <div><div class="control-title">Add UL 924 control bypass</div><div class="control-desc">Separate or verified dual-listed function</div></div>
+          <button type="button" id="overrideBtn" class="switch" role="switch" aria-label="Add UL 924 control bypass to UL 1008 transfer" aria-checked="false"><span class="switch-track"></span></button>
+        </div>
+        <div class="range-wrap" id="dimBlock" hidden>
+          <div class="range-head"><label for="dimmer">EM dimmer</label><span class="range-right"><output id="dimOutput" for="dimmer">35%</output><button type="button" class="dim-off" id="dimOffBtn" aria-label="Turn emergency dimmer off (0%)">OFF</button></span></div>
+          <input id="dimmer" type="range" min="0" max="100" value="35" step="5">
+          <div class="minmax"><span>OFF / 0%</span><span>100% output</span></div>
+          <p class="hint">Models a <strong>shunt-compatible line-voltage dimmer</strong>, not a 0–10V control circuit.</p>
+        </div>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="section-label">Try a scenario</div>
+        <div class="scenarios">
+          <button class="quick-btn" data-preset="normalOff"><span class="pip off"></span>Normal · lights OFF</button>
+          <button class="quick-btn" data-preset="normalOn"><span class="pip"></span>Normal · lights ON</button>
+          <button class="quick-btn highlight" data-preset="outage"><span class="pip em"></span>Simulate outage</button>
+          <button class="quick-btn" data-preset="failedEM"><span class="pip bad"></span>EM source failure</button>
+        </div>
+        <p class="hint">You can also click the supply blocks or the switch directly in the diagram. Outages are instantaneous; transfer delays are not modeled.</p>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="panel stage" aria-label="Interactive power flow diagram">
+        <div class="tabs" role="group" aria-label="Configuration">
+          <button class="mode-option active" data-mode="control" aria-pressed="true"><span class="mode-n">A</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Control relay</strong><small>Follows a normal switch signal</small></span></button>
+          <button class="mode-option" data-mode="bypass" aria-pressed="false"><span class="mode-n">B</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Dimmer bypass</strong><small>Shunts an EM-circuit dimmer</small></span></button>
+          <button class="mode-option" data-mode="transfer" aria-pressed="false"><span class="mode-n">C</span><span class="mode-copy"><span class="mode-std">UL 1008</span><strong>Source transfer</strong><small>Changes the load's source</small></span></button>
+        </div>
+        <div class="stage-head">
+          <div><div class="stage-title" id="diagramTitle">A / UL 924 switched-signal control</div><div class="stage-subtitle" id="diagramSubtitle">Emergency power is the luminaire's only supply.</div></div>
+          <div class="status" id="statusBadge" role="status" aria-live="polite"><span class="dot"></span><span id="statusLabel">NORMAL POWER PRESENT</span></div>
+        </div>
+        <div class="diagram-wrap"><svg id="diagram" role="img" aria-label="Animated conceptual single-line power path" viewBox="28 54 1062 444" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="readout" aria-live="polite">
+          <div class="metric"><div class="metric-label">Supply to EM fixture</div><div class="metric-value" id="metricSource">Inverter</div><div class="metric-sub" id="metricSourceSub">Always supplied by EM circuit</div></div>
+          <div class="metric"><div class="metric-label">EM fixture output</div><div class="metric-value" id="metricLamp">0% · OFF</div><div class="metric-sub" id="metricLampSub">Normal control has it OFF</div></div>
+          <div class="metric"><div class="metric-label">Device operation</div><div class="metric-value" id="metricDevice">Following switch</div><div class="metric-sub" id="metricDeviceSub">Normal power is present</div></div>
+        </div>
+        <div class="legend">
+          <span class="key"><span class="key-line"></span> Normal power</span>
+          <span class="key"><span class="key-line em"></span> Emergency / inverter</span>
+          <span class="key"><span class="key-line sense"></span> Sense / command</span>
+          <span class="key"><span class="key-line off"></span> Inactive path</span>
+          <span class="key-caption">Moving dashes show a conceptual energized route, not measured current.</span>
+        </div>
+      </section>
+
+      <section class="panel explanation" aria-live="polite">
+        <h2>What is happening?</h2>
+        <p id="explainText"></p>
+        <div class="note" id="engineeringNote"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="lower">
+    <section class="panel">
+      <h2>Compare the electrical functions</h2>
+      <p class="panel-sub">Click a row to load that arrangement.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Arrangement</th><th>Fixture source in normal mode</th><th>Action on normal-power loss</th></tr></thead>
+          <tbody>
+            <tr data-mode="control" tabindex="0"><td>A · UL 924 control</td><td>Emergency circuit</td><td>Ignores switched sense; closes EM output contact</td></tr>
+            <tr data-mode="bypass" tabindex="0"><td>B · UL 924 bypass</td><td>Emergency circuit</td><td>Shunts compatible line-voltage control</td></tr>
+            <tr data-mode="transfer" tabindex="0"><td>C · UL 1008 transfer</td><td>Normal circuit</td><td>Transfers source to inverter/generator; a separate listed control-override function may be needed</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Engineering notes &amp; references</h2>
+      <p class="disclaimer">Generic examples, not a wiring, construction, compliance, or device-selection diagram. The schematic intentionally omits neutrals, circuit protection, grounding, ratings, test functions, and inverter internal transfer arrangements.</p>
+      <ul class="ref-list">
+        <li><a href="https://blog.functionaldevices.com/product-guidance/difference-between-ul924-and-ul1008" target="_blank" rel="noopener noreferrer"><span class="ref-src">Functional Devices</span><span class="ref-title">What is the difference between UL924 and UL1008?</span><span class="ref-desc">ALCR / bypass-shunt relays vs. branch circuit transfer switches (BCELTS)</span></a></li>
+        <li><a href="https://iaeimagazine.org/2011/march2011/understanding-control-of-emergency-lighting-circuits/" target="_blank" rel="noopener noreferrer"><span class="ref-src">IAEI Magazine</span><span class="ref-title">Understanding control of emergency lighting circuits</span><span class="ref-desc">Technical overview of UL 924 and UL 1008 functions</span></a></li>
+        <li><a href="https://www.legrand.us/p/view-asset?downloadUrl=https%3A%2F%2Flegrand.webdamdb.com%2Fdirectdownload.php%3Fti%3D55652551%26tok%3DpJX1iIM9ea62aHqRlHsiBgRR&amp;fileExtension=pdf&amp;title=ELCU-200+Emergency+Lighting+Control+Unit+Installation+Instructions" target="_blank" rel="noopener noreferrer"><span class="ref-src">Legrand · Wattstopper ELCU-200</span><span class="ref-title">UL 924 control vs. bypass installation instructions</span><span class="ref-desc">Example wiring for both UL 924 operating modes</span></a></li>
+        <li><a href="https://www.signify.com/api/assets/v1/file/Signify/content/GTDU-spec/GTDU%20specification%20sheet.pdf" target="_blank" rel="noopener noreferrer"><span class="ref-src">Bodine (Signify) · GTDU</span><span class="ref-title">Dual-listed UL 1008 / UL 924 device example</span><span class="ref-desc">Listed as a BCELTS and as a switch bypass; 0–10V override capable</span></a></li>
+        <li><a href="https://hubbellcdn.com/specsheet/DL_BCCR20_SPEC.pdf" target="_blank" rel="noopener noreferrer"><span class="ref-src">Dual-Lite (Hubbell) · BCCR20</span><span class="ref-title">Second dual-listed device example</span><span class="ref-desc">Branch circuit transfer switch / automatic load control relay</span></a></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="caution" role="note">
+    <span class="caution-icon" aria-hidden="true">!</span>
+    <p><strong>Important:</strong> “Full output” in bypass mode applies to a compatible line-voltage control. A 0–10V or digital dimming system may need a separately listed dimming-disconnect/override function. A UL 1008 transfer switch does not automatically override a downstream wall switch. Listing alone does not establish suitability for the selected wiring method, voltage, inverter, or installation.</p>
+  </div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const s = { mode:'control', normal:true, em:true, wall:false, dim:35, override:false };
+  const $ = id => document.getElementById(id);
+  let theme = 'dark';
+  try { theme = localStorage.getItem('em-lighting-simulator-theme') === 'light' ? 'light' : 'dark'; } catch (e) { /* File access may restrict storage. */ }
+  function applyTheme() {
+    document.documentElement.dataset.theme = theme;
+    const light = theme === 'light';
+    $('themeIcon').textContent = light ? '☾' : '☀';
+    $('themeText').textContent = light ? 'Dark mode' : 'Light mode';
+    $('themeBtn').setAttribute('aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
+    $('themeBtn').setAttribute('title', light ? 'Switch to dark mode' : 'Switch to light mode');
+    $('themeBtn').setAttribute('aria-pressed', String(light));
+  }
+  $('themeBtn').addEventListener('click', () => {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    applyTheme();
+    try { localStorage.setItem('em-lighting-simulator-theme', theme); } catch (e) { /* Theme still works in memory. */ }
+  });
+  applyTheme();
+
+  const titleMap = {
+    control:['A / UL 924 switched-signal control', "Emergency power is the luminaire's only supply."],
+    bypass:['B / UL 924 line-voltage dimmer bypass', 'The emergency feed is present ahead of the emergency-circuit dimmer.'],
+    transfer:['C / UL 1008 branch-circuit source transfer', 'The luminaire changes from normal power to the alternate source.']
+  };
+  const OFF='var(--sv-off)', EM='var(--em)', NORM='var(--normal)', SENSE='var(--sense)';
+
+  function line(d,type='normal',status='off') {
+    const cls = type==='sense'?' sense':'';
+    let z=`<path d="${d}" class="wire-base${cls}"/>`;
+    if(status==='ready')z+=`<path d="${d}" class="wire-ready ${type==='sense'?'normal':type}"/>`;
+    if(status==='flow')z+=`<path d="${d}" class="wire-live ${type}"/><path d="${d}" class="wire-dash ${type}"/>`;
+    return z;
+  }
+  function signal(d,on){return `<path d="${d}" class="wire-base sense"/>`+(on?`<path d="${d}" class="wire-live sense"/><path d="${d}" class="wire-dash sense"/>`:'');}
+  function circ(x,y,color){return `<circle cx="${x}" cy="${y}" r="4.5" fill="${color}" stroke="var(--sv-ring)" stroke-width="1.7"/>`;}
+  function source(x,y,w,h,title,sub,on,kind,action){
+    const col=kind==='normal'?NORM:EM, icon=kind==='normal'?'N':'E';
+    return `<g class="clickable" data-action="${action}" role="button" tabindex="0" aria-label="Toggle ${kind==='normal'?'normal':'emergency'} power: ${on?'currently ON':'currently OFF'}">
+      <rect class="node-bg ${kind} ${on?'on':''}" x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/>
+      <rect x="${x+13}" y="${y+14}" width="30" height="30" rx="9" class="${kind==='normal'?'node-icon-normal':'node-icon-em'}"/>
+      <text x="${x+28}" y="${y+34}" fill="${col}" font-size="14" font-weight="850" text-anchor="middle">${icon}</text>
+      <text class="node-head" x="${x+54}" y="${y+27}">${title}</text>
+      <text class="click-hint" x="${x+54}" y="${y+41}">CLICK TO TOGGLE</text>
+      <text class="node-detail" x="${x+14}" y="${y+60}">${sub}</text>
+      <circle cx="${x+17}" cy="${y+h-13}" r="3.5" fill="${on?col:OFF}"/>
+      <text class="node-state" x="${x+27}" y="${y+h-9.5}" fill="${on?col:'var(--node-state-off)'}">${on?'AVAILABLE / ON':'UNAVAILABLE / OFF'}</text>
+    </g>`;
+  }
+  function roomControl(x,y,w,h,label,on){
+    return `<g class="clickable" data-action="wall" role="button" tabindex="0" aria-label="Toggle room switch: ${on?'ON':'OFF'}">
+      <rect class="ctrl-bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="11"/>
+      <text class="ctrl-text" x="${x+14}" y="${y+24}">${label}</text>
+      <rect x="${x+14}" y="${y+36}" width="32" height="16" rx="8" fill="${on?'var(--sv-track-on)':'var(--sv-track)'}" stroke="${on?'var(--sv-track-on-stroke)':'var(--sv-track-stroke)'}"/>
+      <circle cx="${x+(on?38:22)}" cy="${y+44}" r="6" fill="${on?NORM:'var(--sv-knob)'}"/>
+      <text class="ctrl-sub" x="${x+56}" y="${y+48}">${w<150?(on?'ON':'OFF'):(on?'SWITCH ON':'SWITCH OFF')}</text>
+    </g>`;
+  }
+  function fixture(x,y,w,h,label,pct){
+    const lit=pct>0; const bright=Math.max(.12,pct/100);
+    return `<g>
+      <rect class="fixture-bg ${lit?'lit':''}" x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/>
+      ${lit?`<ellipse cx="${x+w-39}" cy="${y+42}" rx="${32+30*bright}" ry="${23+16*bright}" fill="#ffcf87" opacity="${(.06+bright*.13).toFixed(2)}" filter="url(#blurLight)"/>`:''}
+      <text class="fixture-label" x="${x+13}" y="${y+26}">${label}</text>
+      <text class="fixture-small" x="${x+13}" y="${y+45}">${lit?pct+'% output':'OFF / dark'}</text>
+      <rect x="${x+13}" y="${y+h-22}" width="${w-75}" height="7" rx="3.5" fill="var(--sv-bar)"/>
+      <rect x="${x+13}" y="${y+h-22}" width="${lit?((w-75)*bright).toFixed(1):0}" height="7" rx="3.5" fill="var(--lamp-bar)"/>
+      <g transform="translate(${x+w-(w<150?26:36)},${y+(w<150?30:38)})">
+      ${lit?`<circle r="27" fill="#ffda98" opacity="${(.09+.13*bright).toFixed(2)}"/>`:''}
+      <path d="M-11 -7 Q-11 -19 0 -19 Q11 -19 11 -7 Q11 -1 5 5 L5 10 L-5 10 L-5 5 Q-11 -1 -11 -7Z" fill="${lit?'#ffd59a':'var(--bulb-off)'}" stroke="${lit?'#e3a650':'#8295a7'}" stroke-width="1.6"/>
+      <path d="M-5 13 H5 M-4 16 H4" stroke="${lit?'#e3a650':'#8295a7'}" stroke-width="2" stroke-linecap="round"/>
+      </g>
+    </g>`;
+  }
+  function commonDefs(){return `<defs><filter id="blurLight" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="13"/></filter></defs>`;}
+  function caption(x,y,str,anchor='start'){return `<text class="annotation" x="${x}" y="${y}" text-anchor="${anchor}">${str}</text>`;}
+
+  function renderA(){
+    const normalLit=s.normal&&s.wall;
+    const emLit=s.em&&(!s.normal||s.wall);
+    const inputState=s.em?(emLit?'flow':'ready'):'off';
+    let a='';
+    a+=line('M257 120 H340','normal',s.normal?'flow':'off');
+    a+=line('M530 120 H841','normal',normalLit?'flow':'off');
+    a+=signal('M294 120 V221 H518 V272',s.normal);
+    a+=signal('M652 120 V233 H638 V272',normalLit);
+    a+=line('M258 410 H475','em',inputState);
+    a+=line('M718 410 H844','em',emLit?'flow':'off');
+    a+=source(48,76,209,88,'Normal panel','Normal lighting branch',s.normal,'normal','normal');
+    a+=roomControl(340,77,190,86,'Room switch',s.wall);
+    a+=fixture(841,76,190,90,'NORMAL lights',normalLit?100:0);
+    a+=source(48,366,210,88,'EM circuit','Inverter · always ON',s.em,'em','em');
+    a+=`<rect class="relay-bg" x="475" y="269" width="243" height="182" rx="13"/>
+      <text class="relay-head" x="493" y="302">UL 924 · CONTROL</text>
+      <text class="node-detail" x="493" y="321">Automatic load control relay</text>
+      <path class="relay-divider" d="M493 335 H698"/>
+      <text class="relay-port" x="491" y="358">NORMAL SENSE</text><text class="relay-port" x="604" y="358">SWITCH SENSE</text>
+      <circle cx="518" cy="273" r="4" fill="${s.normal?SENSE:OFF}"/>
+      <circle cx="638" cy="273" r="4" fill="${normalLit?SENSE:OFF}"/>
+      <text class="node-state" x="493" y="381" fill="${emLit?EM:'var(--node-state-off)'}">${emLit?'CONTACT CLOSED / EM ON':'CONTACT OPEN / EM OFF'}</text>
+      <path d="M476 410 H546 M655 410 H718" stroke="${s.em?'var(--sv-contact)':OFF}" stroke-width="3" fill="none"/>
+      <circle cx="550" cy="410" r="4" fill="${s.em?EM:OFF}"/>
+      <circle cx="655" cy="410" r="4" fill="${emLit?EM:OFF}"/>
+      <path d="${emLit?'M554 410 H651':'M554 410 L608 385'}" stroke="${emLit?EM:'var(--sv-blade-off)'}" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <text class="relay-port" x="491" y="439">EM IN</text><text class="relay-port" x="700" y="439" text-anchor="end">EM OUT</text>`;
+    a+=fixture(844,366,187,88,'EM lights',emLit?100:0);
+    a+=caption(341,206,'NORMAL UNSWITCHED SENSE');
+    a+=caption(660,104,'NORMAL SWITCHED');
+    a+=caption(279,394,'EMERGENCY ALWAYS ON');
+    a+=caption(781,380,'SWITCHED','middle');
+    a+=caption(781,394,'EM OUTPUT','middle');
+    return a;
+  }
+  function renderB(){
+    const normLit=s.normal&&s.wall;
+    const bypass=!s.normal;
+    const percent=s.em?(bypass?100:s.dim):0;
+    const emDimFlow=s.em&&!bypass&&s.dim>0;
+    const relayFlow=s.em&&bypass;
+    let a='';
+    a+=line('M258 126 H350','normal',s.normal?'flow':'off');
+    a+=line('M548 126 H841','normal',normLit?'flow':'off');
+    a+=signal('M290 126 V233 H565 V273',s.normal);
+    a+=line('M258 411 H351','em',s.em?(percent>0?'flow':'ready'):'off');
+    a+=line('M516 411 H763','em',emDimFlow?'flow':'off');
+    a+=line('M305 411 V327 H457','em',relayFlow?'flow':(s.em?'ready':'off'));
+    a+=line('M692 327 H763 V411','em',relayFlow?'flow':'off');
+    a+=line('M763 411 H847','em',percent>0?'flow':'off');
+    a+=source(49,82,209,88,'Normal panel','Normal lighting branch',s.normal,'normal','normal');
+    a+=roomControl(350,83,198,88,'Room switch',s.wall);
+    a+=fixture(841,82,192,89,'NORMAL lights',normLit?100:0);
+    a+=source(48,366,210,88,'EM circuit','Inverter · always ON',s.em,'em','em');
+    a+=`<rect class="ctrl-bg" x="351" y="366" width="165" height="89" rx="12"/>
+      <text class="ctrl-text" x="365" y="392">EM dimmer</text>
+      <text class="ctrl-sub" x="365" y="411">Line-voltage</text>
+      <rect x="365" y="429" width="112" height="7" rx="3.5" fill="var(--sv-bar)"/>
+      <rect x="365" y="429" width="${(112*s.dim/100).toFixed(1)}" height="7" rx="3.5" fill="${EM}"/>
+      <text class="ctrl-sub" x="503" y="436" text-anchor="end">${s.dim}%</text>`;
+    a+=`<rect class="relay-bg" x="457" y="275" width="235" height="68" rx="12"/>
+      <text class="relay-head" x="472" y="300">UL 924 · BYPASS</text>
+      <text class="node-detail" x="472" y="317">Shunt contact ${bypass?'CLOSED':'OPEN'}</text>
+      <circle cx="565" cy="275" r="4" fill="${s.normal?SENSE:OFF}"/>
+      <path d="M457 327 H497 M645 327 H692" stroke="${s.em?'var(--sv-contact)':OFF}" stroke-width="3" fill="none"/>
+      <circle cx="501" cy="327" r="4" fill="${s.em?EM:OFF}"/>
+      <circle cx="645" cy="327" r="4" fill="${relayFlow?EM:OFF}"/>
+      <path d="${bypass?'M505 327 H641':'M505 327 L583 312'}" stroke="${relayFlow?EM:'var(--sv-blade-off)'}" stroke-width="3.3" fill="none" stroke-linecap="round"/>`;
+    a+=fixture(847,369,186,87,'EM lights',percent);
+    a+=circ(305,411,s.em?EM:OFF);
+    a+=circ(763,411,percent?EM:OFF);
+    a+=caption(354,216,'NORMAL UNSWITCHED SENSE');
+    a+=caption(712,316,'BYPASS PATH');
+    a+=caption(530,397,'DIMMED PATH');
+    a+=caption(60,484,'EMERGENCY ALWAYS ON');
+    return a;
+  }
+  function renderC(){
+    const selected=s.normal?'normal':s.em?'em':'none';
+    const supply=selected!=='none';
+    const override=s.override&&!s.normal&&s.em;
+    const output=supply&&(s.wall||override)?100:0;
+    const chosenColor=selected==='normal'?'normal':'em';
+    const chosenSt=output?'flow':'ready';
+    const selCol=selected==='normal'?NORM:selected==='em'?EM:OFF;
+    let a='';
+    a+=line('M260 127 H343 V325 H423','normal',s.normal?(selected==='normal'?chosenSt:'ready'):'off');
+    a+=line('M260 414 H343 V376 H423','em',s.em?(selected==='em'?chosenSt:'ready'):'off');
+    a+=line('M666 344 H710 V309 H750',chosenColor,supply?chosenSt:'off');
+    a+=line('M870 309 H918',chosenColor,s.wall&&supply?'flow':'off');
+    a+=line('M918 309 H944',chosenColor,output?'flow':'off');
+    a+=line('M720 309 V213 H918 V309',chosenColor,override?'flow':'off');
+    a+=source(50,83,210,88,'Normal panel','Normal supply to load',s.normal,'normal','normal');
+    a+=source(50,370,210,88,'EM source','Inverter / generator',s.em,'em','em');
+    a+=`<rect class="relay-bg" x="423" y="234" width="243" height="175" rx="13"/>
+      <text class="relay-head" x="441" y="261">UL 1008 · TRANSFER</text>
+      <text class="node-detail" x="441" y="279">Branch-circuit transfer function</text>
+      <path class="relay-divider" d="M441 291 H647"/>
+      <text class="relay-port" x="439" y="316">NORMAL</text><text class="relay-port" x="439" y="364">EMERGENCY</text>
+      <path d="M423 325 H506 M423 376 H506 M562 344 H666" stroke="var(--sv-stub)" stroke-width="3" fill="none"/>
+      <circle cx="506" cy="325" r="4" fill="${s.normal?NORM:OFF}"/>
+      <circle cx="506" cy="376" r="4" fill="${s.em?EM:OFF}"/>
+      <circle cx="562" cy="344" r="5" fill="${selCol}"/>
+      <path d="${selected==='normal'?'M510 325 L558 344':selected==='em'?'M510 376 L558 344':'M513 343 L548 337'}" stroke="${selected==='none'?'var(--sv-blade-off)':selCol}" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <text class="node-state" x="441" y="397" fill="${selected==='normal'?NORM:selected==='em'?EM:'var(--danger)'}">${selected==='normal'?'NORMAL SOURCE SELECTED':selected==='em'?'EMERGENCY SOURCE SELECTED':'NO SOURCE AVAILABLE'}</text>`;
+    a+=roomControl(750,268,120,83,'Wall switch',s.wall);
+    a+=fixture(944,266,129,90,'EM lights',output);
+    a+=`<rect class="ctrl-bg" x="780" y="184" width="129" height="53" rx="9" style="stroke:${s.override?'var(--sense)':'var(--sv-stub)'};${s.override?'':'stroke-dasharray:4 4'}"/>
+      <text x="844" y="205" text-anchor="middle" class="ctrl-text" style="font-size:12.5px">UL 924 bypass</text>
+      <text x="844" y="222" text-anchor="middle" class="ctrl-sub">${!s.override?'NOT INSTALLED':override?'CLOSED / ON':'OPEN / STANDBY'}</text>`;
+    a+=circ(918,309,output?EM:OFF);
+    a+=caption(274,111,'NORMAL SOURCE');
+    a+=caption(274,438,'ALTERNATE SOURCE');
+    a+=caption(704,172,'OPTIONAL CONTROL OVERRIDE');
+    a+=caption(676,368,'TRANSFER OUTPUT');
+    return a;
+  }
+
+  function explain(){
+    let txt='',note='',src='',srcsub='',lm='',dev='',devsub='',tone='';
+    if(s.mode==='control'){
+      const lit=s.em&&(!s.normal||s.wall);
+      src=s.em?'Emergency circuit':'None';srcsub='No source transfer occurs';
+      lm=lit?'100% · ON':'0% · OFF';tone=lit?'amber':'red';
+      if(!s.em){dev='No EM supply';devsub='Device cannot energize fixture';txt='The normal power/switch sense may still be present, but the dedicated emergency source is unavailable. The UL 924 control relay cannot energize the emergency luminaire without a usable emergency supply.';}
+      else if(!s.normal){dev='Forced ON';devsub='Normal power sense is lost';txt='Normal unswitched power is lost. The UL 924 relay ignores the normal switched signal and closes its emergency-circuit output contact. The emergency luminaire receives power from the inverter circuit even though the room switch is OFF.';}
+      else if(s.wall){dev='Following switch';devsub='Normal switched signal is ON';txt='Normal power is healthy and the room switch is ON. The relay detects the switched signal and passes the already-available emergency circuit through to the emergency luminaire. Normal lighting is also ON.';}
+      else {dev='Following switch';devsub='Normal switched signal is OFF';txt='Normal unswitched power is healthy, but the room switch is OFF. The relay holds its emergency output contact open, so the emergency luminaire is OFF even though the dedicated inverter-fed input is available. Click “Simulate outage” to see the override.';}
+      note='<strong>Electrical distinction:</strong> This device never connects normal-power conductors to the emergency load. The normal unswitched and switched conductors are sensing inputs; the luminaire remains on the emergency circuit.';
+    } else if(s.mode==='bypass'){
+      const pct=s.em?(!s.normal?100:s.dim):0;
+      src=s.em?'Emergency circuit':'None';srcsub='Same source, two parallel routes';
+      lm=pct>0?`${pct}% · ${pct===100?'FULL':'DIMMED'}`:'0% · OFF';tone=pct>0?'amber':'red';
+      if(!s.em){dev='No EM supply';devsub='Neither route has power';txt='The inverter / emergency circuit is unavailable, so neither the emergency dimmer nor its bypass path can deliver energy to the emergency luminaire.';}
+      else if(!s.normal){dev='Bypass CLOSED';devsub='Dimmer shunted on EM circuit';txt='Loss of normal unswitched power activates the UL 924 shunt contact. The emergency feed goes around the emergency-circuit line-voltage dimmer and energizes the fixture at full line-voltage output, regardless of the dimmer setting.';}
+      else {dev='Bypass OPEN';devsub='Emergency dimmer is in control';txt=`Normal power is present, so the UL 924 bypass remains OPEN. The inverter-fed emergency fixture is controlled through the emergency-circuit line-voltage dimmer, currently at ${s.dim}%. The normal room switch independently controls the normal fixtures in this example.`;}
+      note='<strong>Dimming caution:</strong> This is a simplified, shunt-compatible <em>line-voltage</em> dimmer. Shorting around some dimmers is not permitted. A 0–10V or digital dimming system may still hold a lamp dim even after full line voltage is restored; use a specifically listed control-disconnect / override solution for that case.';
+    } else {
+      const sel=s.normal?'Normal':s.em?'Emergency':'None';const ov=s.override&&!s.normal&&s.em;
+      const lit=sel!=='None'&&(s.wall||ov);
+      src=sel==='None'?'None':sel+' source';srcsub=sel==='Normal'?'ATS selects normal input':sel==='Emergency'?'ATS selects inverter / generator':'Both sources are unavailable';
+      lm=lit?'100% · ON':'0% · OFF';tone=lit?'amber':'red';
+      if(sel==='None'){dev='No source';devsub='Transfer cannot supply fixture';txt='The transfer switch sees neither normal nor emergency power. It has no source available for the lighting circuit. An automatic transfer switch does not create power.';}
+      else if(s.normal){dev='Normal selected';devsub='ATS connected to normal input';txt=`Normal source power is present, so the UL 1008 switch connects the lighting load to the normal circuit. The downstream room switch is ${s.wall?'ON, so the luminaire is ON':'OFF, so the luminaire is OFF'}. The alternate source is available but not connected to the load.`;}
+      else if(ov){dev='Transfer + bypass';devsub='Two different listed functions';txt='Normal power has failed. The UL 1008 transfer function connects the luminaire to the alternate source. The added UL 924 control-bypass function separately shunts the downstream wall switch, forcing the luminaire ON even when the switch is OFF.';}
+      else if(s.wall){dev='Emergency selected';devsub='ATS transfers source only';txt='Normal power has failed. The UL 1008 device connects the lighting load to the emergency source. The downstream switch happens to be ON, so the emergency luminaire is illuminated. This is source transfer, not a UL 924 control override.';}
+      else{dev='Emergency selected';devsub='Downstream switch remains OFF';txt='Normal power has failed and the UL 1008 transfer switch has connected the alternate source. But the downstream wall switch remains OFF, so the luminaire stays dark. Turn ON the “Add UL 924 control bypass” option to demonstrate how a separate—or appropriately dual-listed integrated—control override resolves this.';}
+      note='<strong>Dual-listing note:</strong> Some products are listed to both UL 1008 (transfer) and UL 924 (control bypass) for defined wiring configurations — see the Bodine GTDU and Dual-Lite BCCR20 examples under references. Those are separate functions. Do not assume every UL 1008 switch bypasses downstream controls, or that a UL 924-only relay may transfer between two sources.';
+    }
+    $('explainText').textContent=txt;
+    $('engineeringNote').innerHTML=note;
+    $('metricSource').textContent=src;
+    $('metricSource').className='metric-value '+(src==='None'?'red':s.mode==='transfer'&&s.normal?'green':'amber');
+    $('metricSourceSub').textContent=srcsub;
+    $('metricLamp').textContent=lm;
+    $('metricLamp').className='metric-value '+tone;
+    $('metricLampSub').textContent=lm.startsWith('0%')?'Fixture is not illuminated':'Emergency fixture illuminated';
+    $('metricDevice').textContent=dev;
+    $('metricDevice').className='metric-value';
+    $('metricDeviceSub').textContent=devsub;
+  }
+
+  function update(){
+    $('normalBtn').setAttribute('aria-checked',String(s.normal));
+    $('emBtn').setAttribute('aria-checked',String(s.em));
+    $('wallBtn').setAttribute('aria-checked',String(s.wall));
+    $('overrideBtn').setAttribute('aria-checked',String(s.override));
+    $('dimmer').value=s.dim;
+    $('dimOutput').textContent=s.dim+'%';
+    $('dimOffBtn').disabled=s.dim===0;
+    $('dimBlock').hidden=s.mode!=='bypass';
+    $('overrideBlock').hidden=s.mode!=='transfer';
+    $('wallTitle').textContent=s.mode==='transfer'?'Downstream wall switch':'Normal room switch';
+    $('wallDesc').textContent=s.mode==='control'?'Provides the switched sense input':s.mode==='bypass'?'Controls the normal light fixtures':'Remains in series with the load';
+    $('normalDesc').textContent=s.mode==='transfer'?'Normal source to transfer switch':'Normal branch / power sense';
+    $('emDesc').textContent=s.mode==='transfer'?'Alternate inverter / generator source':'Normally energized inverter output';
+    document.querySelectorAll('.mode-option').forEach(btn=>{const active=btn.dataset.mode===s.mode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));});
+    document.querySelectorAll('tbody tr[data-mode]').forEach(tr=>tr.classList.toggle('active',tr.dataset.mode===s.mode));
+    const [ttl,sub]=titleMap[s.mode];$('diagramTitle').textContent=ttl;$('diagramSubtitle').textContent=sub;
+    $('statusLabel').textContent=s.normal?'NORMAL POWER PRESENT':'NORMAL POWER LOST';
+    $('statusBadge').classList.toggle('dark',!s.normal);
+    $('diagram').innerHTML=commonDefs()+(s.mode==='control'?renderA():s.mode==='bypass'?renderB():renderC());
+    explain();
+  }
+  function toggle(key){s[key]=!s[key];update();}
+  function setMode(m){s.mode=m;update();}
+  $('normalBtn').addEventListener('click',()=>toggle('normal'));
+  $('emBtn').addEventListener('click',()=>toggle('em'));
+  $('wallBtn').addEventListener('click',()=>toggle('wall'));
+  $('overrideBtn').addEventListener('click',()=>toggle('override'));
+  $('dimmer').addEventListener('input',e=>{s.dim=Number(e.target.value);update()});
+  $('dimOffBtn').addEventListener('click',()=>{s.dim=0;update()});
+  document.querySelectorAll('.mode-option').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+  document.querySelectorAll('tbody tr[data-mode]').forEach(tr=>{
+    tr.addEventListener('click',()=>setMode(tr.dataset.mode));
+    tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setMode(tr.dataset.mode)}});
+  });
+  const preset=(name)=>{
+    if(name==='normalOff'){s.normal=true;s.em=true;s.wall=false;s.dim=0;}
+    if(name==='normalOn'){s.normal=true;s.em=true;s.wall=true;s.dim=75;}
+    if(name==='outage'){s.normal=false;s.em=true;s.wall=false;s.dim=0;}
+    if(name==='failedEM'){s.normal=false;s.em=false;s.wall=false;s.dim=0;}
+    update();
+  };
+  document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>preset(b.dataset.preset)));
+  $('diagram').addEventListener('click',e=>{const g=e.target.closest('[data-action]');if(g)toggle(g.dataset.action)});
+  $('diagram').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('[data-action]');if(g){e.preventDefault();toggle(g.dataset.action)}}});
+  update();
+})();
+</script>
+</body>
+</html>
+
