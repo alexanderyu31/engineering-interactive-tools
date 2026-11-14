@@ -19,6 +19,7 @@
     --sv-bar:#2c4054; --lamp-bar:#ffca7b; --bulb-off:#55687d; --node-state-off:#9baabd;
     --sv-track:#374359; --sv-track-stroke:#70829b; --sv-knob:#a7b3c2;
     --sv-track-on:#1f5747; --sv-track-on-stroke:#45ac84;
+    --ctl:#c39bff;
     font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     color-scheme:dark;
   }
@@ -76,11 +77,20 @@
   .dim-off:disabled{opacity:.45;cursor:default}
   input[type="range"]{accent-color:var(--em);width:100%;margin:12px 0 4px}
   .minmax{display:flex;justify-content:space-between;color:var(--soft);font-size:11px}
+  .seg-wrap{padding:12px 0;border-bottom:1px solid var(--line)}
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin-top:8px;background:var(--panel-2);border:1px solid var(--line-2);border-radius:10px}
+  .seg-3{grid-template-columns:repeat(3,1fr)}
+  .seg-btn{line-height:1.2;border:0;background:transparent;border-radius:7px;padding:7px 6px;font-size:12px;font-weight:700;color:var(--muted);transition:.15s}
+  .seg-btn:hover{color:var(--text)}
+  .seg-btn.active{background:var(--accent-bg);color:var(--text);box-shadow:inset 0 0 0 1px var(--accent)}
+  .range-wrap.ctl-range input[type="range"]{accent-color:var(--ctl)}
+  .range-wrap.ctl-range .range-head output{color:var(--ctl)}
   .hint{font-size:12px;color:var(--soft);line-height:1.55;margin-top:10px}
   .hint strong{color:var(--muted)}
 
   .scenarios{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .quick-btn{display:flex;align-items:center;gap:8px;text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:9px;padding:10px 10px;font-size:12px;font-weight:700;line-height:1.25;color:#cfdced;transition:.15s}
+  .scenarios .quick-btn:last-child:nth-child(odd){grid-column:1/-1}
   .quick-btn:hover{background:var(--panel-3);border-color:#5d7fa6}
   .quick-btn .pip{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--normal)}
   .quick-btn .pip.off{background:transparent;border:2px solid var(--normal)}
@@ -130,6 +140,7 @@
   .key-line.em{background:var(--em)}
   .key-line.sense{height:2px;background:repeating-linear-gradient(to right,var(--sense) 0 5px,transparent 5px 9px)}
   .key-line.off{background:#47556b}
+  .key-line.ctl{height:2px;background:repeating-linear-gradient(to right,var(--ctl) 0 3px,transparent 3px 7px)}
   .key-caption{margin-left:auto;font-size:11.5px;color:var(--soft)}
 
   .explanation{padding:20px 22px}
@@ -140,6 +151,7 @@
 
   /* Lower */
   .lower{margin-top:18px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr);gap:18px;align-items:start}
+  .lower>*{min-width:0}
   .lower .panel{padding:20px 22px}
   .lower h2{font-size:16px;margin:0 0 4px;letter-spacing:-.2px}
   .panel-sub{font-size:12.5px;color:var(--soft);margin:0 0 12px}
@@ -181,6 +193,11 @@
   .wire-dash.normal{stroke:#cbffe5}.wire-dash.em{stroke:#ffe2b5}
   .wire-dash.sense{stroke:#a6d6ff;stroke-width:2.7;stroke-dasharray:4 14;animation-duration:2.25s}
   .wire-live.sense{stroke:var(--sense);stroke-width:2;stroke-dasharray:5 7;opacity:.9}
+  .wire-base.ctl{stroke:#3a3652;stroke-width:2.2;stroke-dasharray:3 5}
+  .wire-live.ctl{stroke:var(--ctl);stroke-width:2.2;stroke-dasharray:3 5;opacity:.95}
+  .wire-dash.ctl{stroke:#eadbff;stroke-width:2.6;stroke-dasharray:3 15;animation-duration:2.4s}
+  .wire-hold{fill:none;stroke-linecap:round}
+  .wire-hold.ctl{stroke:var(--ctl);stroke-width:2.2;stroke-dasharray:3 5;opacity:.55}
   @keyframes flow{to{stroke-dashoffset:-80}}
   .node-bg{fill:#15253b;stroke:#46607e;stroke-width:1.5}
   .node-bg.normal.on{stroke:#389f81}.node-bg.em.on{stroke:#c38c56}
@@ -219,6 +236,7 @@
     --sv-bar:#e1e8f0;--lamp-bar:#e0973a;--bulb-off:#c3cfdb;--node-state-off:#66788b;
     --sv-track:#dbe4ee;--sv-track-stroke:#a0b2c5;--sv-knob:#7c90a6;
     --sv-track-on:#c3ebdc;--sv-track-on-stroke:#4fa287;
+    --ctl:#7340c2;
   }
   html[data-theme="light"] body{background:radial-gradient(1100px 600px at 65% -200px,#d6e7fb 0%,transparent 75%),var(--bg)}
   html[data-theme="light"] a{color:#125aab}html[data-theme="light"] a:hover{color:#093e80}
@@ -254,6 +272,8 @@
   html[data-theme="light"] .wire-dash.normal{stroke:#034d3b}
   html[data-theme="light"] .wire-dash.em{stroke:#734006}
   html[data-theme="light"] .wire-dash.sense{stroke:#0f4d84}
+  html[data-theme="light"] .wire-base.ctl{stroke:#ddd3ee}
+  html[data-theme="light"] .wire-dash.ctl{stroke:#3d1675}
   html[data-theme="light"] .node-bg{fill:#ffffff;stroke:#9bb1c7}
   html[data-theme="light"] .node-bg.normal.on{stroke:#328770}
   html[data-theme="light"] .node-bg.em.on{stroke:#b88144}
@@ -292,6 +312,8 @@
     .sidebar-group + .sidebar-group{margin-top:0;padding-top:0;border-top:0}
     .workspace{display:contents}
     .stage{order:1}.sidebar{order:2}.explanation{order:3}
+    .main-layout>*,.stage,.explanation{min-width:0;max-width:100%}
+    table{min-width:640px}
     .mode-option{padding:12px 12px;gap:9px}
     .mode-n{display:none}
     .key-caption{width:100%;margin:0}
@@ -336,19 +358,31 @@
           <div><div class="control-title">Emergency source available</div><div class="control-desc" id="emDesc">Normally energized inverter output</div></div>
           <button type="button" id="emBtn" class="switch em-toggle" role="switch" aria-label="Emergency power source available" aria-checked="true"><span class="switch-track"></span></button>
         </div>
+        <div class="seg-wrap" id="roomCtlBlock">
+          <div class="control-title">Room control type</div>
+          <div class="seg seg-3" role="group" aria-label="Room control type">
+            <button type="button" class="seg-btn active" data-rc="switch" aria-pressed="true">On/off<br>switch</button>
+            <button type="button" class="seg-btn" data-rc="phase" aria-pressed="false">Line-volt<br>dimmer</button>
+            <button type="button" class="seg-btn" data-rc="dim010" aria-pressed="false">0–10V<br>dimmer</button>
+          </div>
+        </div>
         <div class="control-row">
           <div><div class="control-title" id="wallTitle">Normal room switch</div><div class="control-desc" id="wallDesc">Provides the switched sense input</div></div>
-          <button type="button" id="wallBtn" class="switch" role="switch" aria-label="Room lighting switch" aria-checked="false"><span class="switch-track"></span></button>
+          <button type="button" id="wallBtn" class="switch" role="switch" aria-label="Room control on/off" aria-checked="false"><span class="switch-track"></span></button>
+        </div>
+        <div class="range-wrap" id="roomDimBlock" hidden>
+          <div class="range-head"><label for="roomDim">Room dimmer level</label><span class="range-right"><output id="roomDimOutput" for="roomDim">40%</output><button type="button" class="dim-off" id="dimOffBtn" aria-label="Set dimmer to 0%">OFF</button></span></div>
+          <input id="roomDim" type="range" min="0" max="100" value="40" step="5">
+          <div class="minmax"><span id="dimMin">OFF / 0%</span><span>100%</span></div>
+          <p class="hint" id="dimHint"></p>
         </div>
         <div class="control-row" id="overrideBlock" hidden>
           <div><div class="control-title">Add UL 924 control bypass</div><div class="control-desc">Separate or verified dual-listed function</div></div>
           <button type="button" id="overrideBtn" class="switch" role="switch" aria-label="Add UL 924 control bypass to UL 1008 transfer" aria-checked="false"><span class="switch-track"></span></button>
         </div>
-        <div class="range-wrap" id="dimBlock" hidden>
-          <div class="range-head"><label for="dimmer">EM dimmer</label><span class="range-right"><output id="dimOutput" for="dimmer">35%</output><button type="button" class="dim-off" id="dimOffBtn" aria-label="Turn emergency dimmer off (0%)">OFF</button></span></div>
-          <input id="dimmer" type="range" min="0" max="100" value="35" step="5">
-          <div class="minmax"><span>OFF / 0%</span><span>100% output</span></div>
-          <p class="hint">Models a <strong>shunt-compatible line-voltage dimmer</strong>, not a 0–10V control circuit.</p>
+        <div class="control-row" id="ovr010Block" hidden>
+          <div><div class="control-title" id="ovrTitle">Relay has 0–10V override</div><div class="control-desc">Opens the EM driver's dim leads on outage</div></div>
+          <button type="button" id="ovr010Btn" class="switch" role="switch" aria-label="UL 924 device includes 0-10V dimming override" aria-checked="true"><span class="switch-track"></span></button>
         </div>
       </div>
 
@@ -358,24 +392,25 @@
           <button class="quick-btn" data-preset="normalOff"><span class="pip off"></span>Normal · lights OFF</button>
           <button class="quick-btn" data-preset="normalOn"><span class="pip"></span>Normal · lights ON</button>
           <button class="quick-btn highlight" data-preset="outage"><span class="pip em"></span>Simulate outage</button>
+          <button class="quick-btn highlight" data-preset="outageOn"><span class="pip em"></span>Outage · room ON</button>
           <button class="quick-btn" data-preset="failedEM"><span class="pip bad"></span>EM source failure</button>
         </div>
-        <p class="hint">You can also click the supply blocks or the switch directly in the diagram. Outages are instantaneous; transfer delays are not modeled.</p>
+        <p class="hint">“Simulate outage” leaves the room control OFF; “Outage · room ON” leaves it on so you can compare dimmed behavior. You can also click the supply blocks or controls directly in the diagram. Outages are instantaneous; transfer delays are not modeled.</p>
       </div>
     </aside>
 
     <main class="workspace">
       <section class="panel stage" aria-label="Interactive power flow diagram">
         <div class="tabs" role="group" aria-label="Configuration">
-          <button class="mode-option active" data-mode="control" aria-pressed="true"><span class="mode-n">A</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Control relay</strong><small>Follows a normal switch signal</small></span></button>
-          <button class="mode-option" data-mode="bypass" aria-pressed="false"><span class="mode-n">B</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Dimmer bypass</strong><small>Shunts an EM-circuit dimmer</small></span></button>
+          <button class="mode-option active" data-mode="control" aria-pressed="true"><span class="mode-n">A</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Control relay</strong><small>Follows the room control</small></span></button>
+          <button class="mode-option" data-mode="bypass" aria-pressed="false"><span class="mode-n">B</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Control bypass</strong><small>Shunts an EM-circuit control</small></span></button>
           <button class="mode-option" data-mode="transfer" aria-pressed="false"><span class="mode-n">C</span><span class="mode-copy"><span class="mode-std">UL 1008</span><strong>Source transfer</strong><small>Changes the load's source</small></span></button>
         </div>
         <div class="stage-head">
           <div><div class="stage-title" id="diagramTitle">A / UL 924 switched-signal control</div><div class="stage-subtitle" id="diagramSubtitle">Emergency power is the luminaire's only supply.</div></div>
           <div class="status" id="statusBadge" role="status" aria-live="polite"><span class="dot"></span><span id="statusLabel">NORMAL POWER PRESENT</span></div>
         </div>
-        <div class="diagram-wrap"><svg id="diagram" role="img" aria-label="Animated conceptual single-line power path" viewBox="28 54 1062 444" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="diagram-wrap"><svg id="diagram" role="img" aria-label="Animated conceptual single-line power path" viewBox="28 54 1062 452" preserveAspectRatio="xMidYMid meet"></svg></div>
         <div class="readout" aria-live="polite">
           <div class="metric"><div class="metric-label">Supply to EM fixture</div><div class="metric-value" id="metricSource">Inverter</div><div class="metric-sub" id="metricSourceSub">Always supplied by EM circuit</div></div>
           <div class="metric"><div class="metric-label">EM fixture output</div><div class="metric-value" id="metricLamp">0% · OFF</div><div class="metric-sub" id="metricLampSub">Normal control has it OFF</div></div>
@@ -385,6 +420,7 @@
           <span class="key"><span class="key-line"></span> Normal power</span>
           <span class="key"><span class="key-line em"></span> Emergency / inverter</span>
           <span class="key"><span class="key-line sense"></span> Sense / command</span>
+          <span class="key" id="ctlKey" hidden><span class="key-line ctl"></span> 0–10V control</span>
           <span class="key"><span class="key-line off"></span> Inactive path</span>
           <span class="key-caption">Moving dashes show a conceptual energized route, not measured current.</span>
         </div>
@@ -404,11 +440,11 @@
       <p class="panel-sub">Click a row to load that arrangement.</p>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Arrangement</th><th>Fixture source in normal mode</th><th>Action on normal-power loss</th></tr></thead>
+          <thead><tr><th>Arrangement</th><th>Fixture source in normal mode</th><th>Action on normal-power loss</th><th>With a dimmer, on normal-power loss</th></tr></thead>
           <tbody>
-            <tr data-mode="control" tabindex="0"><td>A · UL 924 control</td><td>Emergency circuit</td><td>Ignores switched sense; closes EM output contact</td></tr>
-            <tr data-mode="bypass" tabindex="0"><td>B · UL 924 bypass</td><td>Emergency circuit</td><td>Shunts compatible line-voltage control</td></tr>
-            <tr data-mode="transfer" tabindex="0"><td>C · UL 1008 transfer</td><td>Normal circuit</td><td>Transfers source to inverter/generator; a separate listed control-override function may be needed</td></tr>
+            <tr data-mode="control" tabindex="0"><td>A · UL 924 control</td><td>Emergency circuit</td><td>Ignores switched sense; closes EM output contact</td><td>Line-voltage dimmer: EM fixture was never dimmed (full on). 0–10V: full only if the relay has a 0–10V override</td></tr>
+            <tr data-mode="bypass" tabindex="0"><td>B · UL 924 bypass</td><td>Emergency circuit</td><td>Shunts compatible line-voltage control</td><td>Line-voltage dimmer: shunted to full. 0–10V: power restored, but full only with a 0–10V override</td></tr>
+            <tr data-mode="transfer" tabindex="0"><td>C · UL 1008 transfer</td><td>Normal circuit</td><td>Transfers source to inverter/generator; a separate listed control-override function may be needed</td><td>Stays at the dimmer setting unless a UL 924 bypass is added (with a 0–10V override for 0–10V dimming)</td></tr>
           </tbody>
         </table>
       </div>
@@ -434,7 +470,7 @@
 <script>
 (() => {
   'use strict';
-  const s = { mode:'control', normal:true, em:true, wall:false, dim:35, override:false };
+  const s = { mode:'control', normal:true, em:true, wall:false, override:false, rc:'switch', lvl:40, ovr010:true };
   const $ = id => document.getElementById(id);
   let theme = 'dark';
   try { theme = localStorage.getItem('em-lighting-simulator-theme') === 'light' ? 'light' : 'dark'; } catch (e) { /* File access may restrict storage. */ }
@@ -456,11 +492,12 @@
 
   const titleMap = {
     control:['A / UL 924 switched-signal control', "Emergency power is the luminaire's only supply."],
-    bypass:['B / UL 924 line-voltage dimmer bypass', 'The emergency feed is present ahead of the emergency-circuit dimmer.'],
+    bypass:['B / UL 924 emergency-circuit control bypass', 'The emergency feed is present ahead of the emergency-circuit control.'],
     transfer:['C / UL 1008 branch-circuit source transfer', 'The luminaire changes from normal power to the alternate source.']
   };
-  const OFF='var(--sv-off)', EM='var(--em)', NORM='var(--normal)', SENSE='var(--sense)';
+  const OFF='var(--sv-off)', EM='var(--em)', NORM='var(--normal)', SENSE='var(--sense)', CTL='var(--ctl)';
 
+  /* ---------- drawing helpers ---------- */
   function line(d,type='normal',status='off') {
     const cls = type==='sense'?' sense':'';
     let z=`<path d="${d}" class="wire-base${cls}"/>`;
@@ -469,6 +506,7 @@
     return z;
   }
   function signal(d,on){return `<path d="${d}" class="wire-base sense"/>`+(on?`<path d="${d}" class="wire-live sense"/><path d="${d}" class="wire-dash sense"/>`:'');}
+  function ctl(d,st){return `<path d="${d}" class="wire-base ctl"/>`+(st==='active'?`<path d="${d}" class="wire-live ctl"/><path d="${d}" class="wire-dash ctl"/>`:st==='hold'?`<path d="${d}" class="wire-hold ctl"/>`:'');}
   function circ(x,y,color){return `<circle cx="${x}" cy="${y}" r="4.5" fill="${color}" stroke="var(--sv-ring)" stroke-width="1.7"/>`;}
   function source(x,y,w,h,title,sub,on,kind,action){
     const col=kind==='normal'?NORM:EM, icon=kind==='normal'?'N':'E';
@@ -483,13 +521,17 @@
       <text class="node-state" x="${x+27}" y="${y+h-9.5}" fill="${on?col:'var(--node-state-off)'}">${on?'AVAILABLE / ON':'UNAVAILABLE / OFF'}</text>
     </g>`;
   }
-  function roomControl(x,y,w,h,label,on){
-    return `<g class="clickable" data-action="wall" role="button" tabindex="0" aria-label="Toggle room switch: ${on?'ON':'OFF'}">
+  /* level === null → plain switch; otherwise a dimmer showing its level */
+  function roomControl(x,y,w,h,label,on,level){
+    const dim=level!=null;
+    const barCol=s.rc==='dim010'?CTL:EM;
+    return `<g class="clickable" data-action="wall" role="button" tabindex="0" aria-label="Toggle ${label}: ${on?'ON':'OFF'}">
       <rect class="ctrl-bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="11"/>
       <text class="ctrl-text" x="${x+14}" y="${y+24}">${label}</text>
       <rect x="${x+14}" y="${y+36}" width="32" height="16" rx="8" fill="${on?'var(--sv-track-on)':'var(--sv-track)'}" stroke="${on?'var(--sv-track-on-stroke)':'var(--sv-track-stroke)'}"/>
       <circle cx="${x+(on?38:22)}" cy="${y+44}" r="6" fill="${on?NORM:'var(--sv-knob)'}"/>
-      <text class="ctrl-sub" x="${x+56}" y="${y+48}">${w<150?(on?'ON':'OFF'):(on?'SWITCH ON':'SWITCH OFF')}</text>
+      <text class="ctrl-sub" x="${x+56}" y="${y+48}">${dim?(on?`ON · ${level}%`:'OFF'):w<150?(on?'ON':'OFF'):(on?'SWITCH ON':'SWITCH OFF')}</text>
+      ${dim?`<rect x="${x+14}" y="${y+h-17}" width="${w-28}" height="6" rx="3" fill="var(--sv-bar)"/><rect x="${x+14}" y="${y+h-17}" width="${((w-28)*level/100).toFixed(1)}" height="6" rx="3" fill="${barCol}" opacity="${on?1:.45}"/>`:''}
     </g>`;
   }
   function fixture(x,y,w,h,label,pct){
@@ -508,23 +550,87 @@
       </g>
     </g>`;
   }
+  /* 106 × 70 box; the 0–10V pair enters at x and leaves at x+106, at y+46 */
+  function ovBox(x,y,open,provided,sub){
+    const cy=y+46;
+    return `<rect class="ctrl-bg" x="${x}" y="${y}" width="106" height="70" rx="9" style="${provided?'':'stroke-dasharray:4 4'}"/>
+      <text class="relay-port" x="${x+53}" y="${y+16}" text-anchor="middle">0–10V OVERRIDE</text>
+      <text class="click-hint" x="${x+53}" y="${y+28}" text-anchor="middle">${sub}</text>
+      <path d="M${x} ${cy} H${x+30} M${x+76} ${cy} H${x+106}" stroke="${provided?CTL:'var(--sv-stub)'}" stroke-width="2" fill="none"/>
+      <circle cx="${x+32}" cy="${cy}" r="3.5" fill="${provided?CTL:OFF}"/><circle cx="${x+74}" cy="${cy}" r="3.5" fill="${provided?CTL:OFF}"/>
+      <path d="${open?`M${x+35} ${cy} L${x+65} ${cy-15}`:`M${x+35} ${cy} H${x+71}`}" stroke="${provided?CTL:'var(--sv-blade-off)'}" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <text class="relay-port" x="${x+53}" y="${y+63}" text-anchor="middle" style="${open?'fill:var(--em)':''}">${!provided?'NOT PROVIDED':open?'OPEN · FULL':'CLOSED'}</text>`;
+  }
   function commonDefs(){return `<defs><filter id="blurLight" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="13"/></filter></defs>`;}
   function caption(x,y,str,anchor='start'){return `<text class="annotation" x="${x}" y="${y}" text-anchor="${anchor}">${str}</text>`;}
 
+  /* ---------- models ---------- */
+  const isDim=()=>s.rc!=='switch';
+  const roomOn=()=>s.wall&&(s.rc!=='phase'||s.lvl>0);
+  const ctlLevel=()=>s.rc==='switch'?100:s.lvl;
+  function calcA(){
+    const on=roomOn(), dim010=s.rc==='dim010';
+    const normalOn=s.normal&&on;
+    const emLit=s.em&&(!s.normal||on);
+    const ovOpen=dim010&&!s.normal&&s.ovr010;
+    const hold=dim010&&emLit&&!s.normal&&!s.ovr010;
+    const nLevel=normalOn?ctlLevel():0;
+    const eLevel=!emLit?0:(dim010&&!ovOpen)?s.lvl:100;
+    return {on,dim010,normalOn,emLit,ovOpen,hold,nLevel,eLevel};
+  }
+  function calcB(){
+    const on=roomOn(), dim010=s.rc==='dim010';
+    const bypass=!s.normal;
+    const nLevel=s.normal&&on?ctlLevel():0;
+    const viaCtl=s.em&&!bypass&&on;
+    const relayFlow=s.em&&bypass;
+    const ovOpen=dim010&&bypass&&s.ovr010;
+    let eLevel=0;
+    if(s.em) eLevel=bypass?((dim010&&!s.ovr010)?s.lvl:100):(on?ctlLevel():0);
+    const hold=dim010&&relayFlow&&!s.ovr010;
+    return {on,dim010,bypass,nLevel,viaCtl,relayFlow,ovOpen,eLevel,hold};
+  }
+  function calcC(){
+    const on=roomOn(), dim010=s.rc==='dim010';
+    const selected=s.normal?'normal':s.em?'em':'none';
+    const supply=selected!=='none';
+    const byp=s.override&&!s.normal&&s.em;
+    const powered=supply&&(on||byp);
+    const ovOpen=dim010&&byp&&s.ovr010;
+    let eLevel=0;
+    if(powered){
+      if(s.rc==='switch') eLevel=100;
+      else if(byp) eLevel=(dim010&&!s.ovr010)?s.lvl:100;
+      else eLevel=s.lvl;
+    }
+    return {on,dim010,selected,supply,byp,powered,ovOpen,eLevel};
+  }
+
+  /* ---------- A: UL 924 control ---------- */
   function renderA(){
-    const normalLit=s.normal&&s.wall;
-    const emLit=s.em&&(!s.normal||s.wall);
-    const inputState=s.em?(emLit?'flow':'ready'):'off';
+    const c=calcA();
+    const inputState=s.em?(c.emLit?'flow':'ready'):'off';
+    const label={switch:'Room switch',phase:'Line-volt dimmer',dim010:'0–10V dimmer'}[s.rc];
     let a='';
     a+=line('M257 120 H340','normal',s.normal?'flow':'off');
-    a+=line('M530 120 H841','normal',normalLit?'flow':'off');
+    a+=line('M530 120 H841','normal',c.normalOn?'flow':'off');
     a+=signal('M294 120 V221 H518 V272',s.normal);
-    a+=signal('M652 120 V233 H638 V272',normalLit);
+    a+=signal('M652 120 V233 H638 V272',c.normalOn);
     a+=line('M258 410 H475','em',inputState);
-    a+=line('M718 410 H844','em',emLit?'flow':'off');
+    a+=line('M718 410 H844','em',c.emLit?'flow':'off');
+    if(c.dim010){
+      const bus=c.normalOn?'active':(c.hold?'hold':'off');
+      a+=ctl('M470 77 V62 H1055 V121',bus);
+      a+=ctl('M1055 121 H1031',c.normalOn?'active':'off');
+      a+=ctl('M1055 121 V314 H846',bus);
+      a+=ctl('M740 314 H730 V352 H900 V366',c.ovOpen?'off':bus);
+      a+=ovBox(740,268,c.ovOpen,s.ovr010,'IN UL 924 RELAY');
+      a+=caption(548,80,'0–10V DIM CONTROL (CLASS 2)');
+      if(c.hold)a+=caption(1031,362,'HELD AT '+s.lvl+'%','end');
+    }
     a+=source(48,76,209,88,'Normal panel','Normal lighting branch',s.normal,'normal','normal');
-    a+=roomControl(340,77,190,86,'Room switch',s.wall);
-    a+=fixture(841,76,190,90,'NORMAL lights',normalLit?100:0);
+    a+=roomControl(340,77,190,86,label,s.wall,isDim()?s.lvl:null);
+    a+=fixture(841,76,190,90,'NORMAL lights',c.nLevel);
     a+=source(48,366,210,88,'EM circuit','Inverter · always ON',s.em,'em','em');
     a+=`<rect class="relay-bg" x="475" y="269" width="243" height="182" rx="13"/>
       <text class="relay-head" x="493" y="302">UL 924 · CONTROL</text>
@@ -532,78 +638,92 @@
       <path class="relay-divider" d="M493 335 H698"/>
       <text class="relay-port" x="491" y="358">NORMAL SENSE</text><text class="relay-port" x="604" y="358">SWITCH SENSE</text>
       <circle cx="518" cy="273" r="4" fill="${s.normal?SENSE:OFF}"/>
-      <circle cx="638" cy="273" r="4" fill="${normalLit?SENSE:OFF}"/>
-      <text class="node-state" x="493" y="381" fill="${emLit?EM:'var(--node-state-off)'}">${emLit?'CONTACT CLOSED / EM ON':'CONTACT OPEN / EM OFF'}</text>
+      <circle cx="638" cy="273" r="4" fill="${c.normalOn?SENSE:OFF}"/>
+      <text class="node-state" x="493" y="381" fill="${c.emLit?EM:'var(--node-state-off)'}">${c.emLit?'CONTACT CLOSED / EM ON':'CONTACT OPEN / EM OFF'}</text>
       <path d="M476 410 H546 M655 410 H718" stroke="${s.em?'var(--sv-contact)':OFF}" stroke-width="3" fill="none"/>
       <circle cx="550" cy="410" r="4" fill="${s.em?EM:OFF}"/>
-      <circle cx="655" cy="410" r="4" fill="${emLit?EM:OFF}"/>
-      <path d="${emLit?'M554 410 H651':'M554 410 L608 385'}" stroke="${emLit?EM:'var(--sv-blade-off)'}" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <circle cx="655" cy="410" r="4" fill="${c.emLit?EM:OFF}"/>
+      <path d="${c.emLit?'M554 410 H651':'M554 410 L608 385'}" stroke="${c.emLit?EM:'var(--sv-blade-off)'}" stroke-width="4" stroke-linecap="round" fill="none"/>
       <text class="relay-port" x="491" y="439">EM IN</text><text class="relay-port" x="700" y="439" text-anchor="end">EM OUT</text>`;
-    a+=fixture(844,366,187,88,'EM lights',emLit?100:0);
+    a+=fixture(844,366,187,88,'EM lights',c.eLevel);
     a+=caption(341,206,'NORMAL UNSWITCHED SENSE');
-    a+=caption(660,104,'NORMAL SWITCHED');
+    a+=caption(660,104,s.rc==='phase'?'NORMAL DIMMED LEG':'NORMAL SWITCHED');
     a+=caption(279,394,'EMERGENCY ALWAYS ON');
     a+=caption(781,380,'SWITCHED','middle');
     a+=caption(781,394,'EM OUTPUT','middle');
     return a;
   }
+
+  /* ---------- B: UL 924 bypass ---------- */
   function renderB(){
-    const normLit=s.normal&&s.wall;
-    const bypass=!s.normal;
-    const percent=s.em?(bypass?100:s.dim):0;
-    const emDimFlow=s.em&&!bypass&&s.dim>0;
-    const relayFlow=s.em&&bypass;
+    const c=calcB();
+    const emLabel={switch:'EM switch',phase:'EM dimmer',dim010:'EM 0–10V dim'}[s.rc];
+    const nLabel=s.rc==='switch'?'Normal switch':'Normal dimmer';
     let a='';
     a+=line('M258 126 H350','normal',s.normal?'flow':'off');
-    a+=line('M548 126 H841','normal',normLit?'flow':'off');
+    a+=line('M548 126 H841','normal',c.nLevel>0?'flow':'off');
     a+=signal('M290 126 V233 H565 V273',s.normal);
-    a+=line('M258 411 H351','em',s.em?(percent>0?'flow':'ready'):'off');
-    a+=line('M516 411 H763','em',emDimFlow?'flow':'off');
-    a+=line('M305 411 V327 H457','em',relayFlow?'flow':(s.em?'ready':'off'));
-    a+=line('M692 327 H763 V411','em',relayFlow?'flow':'off');
-    a+=line('M763 411 H847','em',percent>0?'flow':'off');
+    a+=line('M258 411 H351','em',s.em?(c.eLevel>0?'flow':'ready'):'off');
+    a+=line('M516 411 H763','em',c.viaCtl?'flow':'off');
+    a+=line('M305 411 V327 H457','em',c.relayFlow?'flow':(s.em?'ready':'off'));
+    a+=line('M692 327 H763 V411','em',c.relayFlow?'flow':'off');
+    a+=line('M763 411 H847','em',c.eLevel>0?'flow':'off');
+    if(c.dim010){
+      const bus=(s.em&&(c.on||c.bypass))?'active':'off';
+      a+=ctl('M434 455 V475 H600',bus);
+      a+=ctl('M706 475 H940 V456',c.ovOpen?'off':bus);
+      a+=ovBox(600,429,c.ovOpen,s.ovr010,'IN UL 924 BYPASS');
+      a+=caption(722,468,'0–10V PAIR');
+      if(c.hold)a+=caption(1033,364,'HELD AT '+s.lvl+'%','end');
+    }
     a+=source(49,82,209,88,'Normal panel','Normal lighting branch',s.normal,'normal','normal');
-    a+=roomControl(350,83,198,88,'Room switch',s.wall);
-    a+=fixture(841,82,192,89,'NORMAL lights',normLit?100:0);
+    a+=roomControl(350,83,198,88,nLabel,s.wall,isDim()?s.lvl:null);
+    a+=fixture(841,82,192,89,'NORMAL lights',c.nLevel);
     a+=source(48,366,210,88,'EM circuit','Inverter · always ON',s.em,'em','em');
-    a+=`<rect class="ctrl-bg" x="351" y="366" width="165" height="89" rx="12"/>
-      <text class="ctrl-text" x="365" y="392">EM dimmer</text>
-      <text class="ctrl-sub" x="365" y="411">Line-voltage</text>
-      <rect x="365" y="429" width="112" height="7" rx="3.5" fill="var(--sv-bar)"/>
-      <rect x="365" y="429" width="${(112*s.dim/100).toFixed(1)}" height="7" rx="3.5" fill="${EM}"/>
-      <text class="ctrl-sub" x="503" y="436" text-anchor="end">${s.dim}%</text>`;
+    a+=roomControl(351,366,165,89,emLabel,s.wall,isDim()?s.lvl:null);
     a+=`<rect class="relay-bg" x="457" y="275" width="235" height="68" rx="12"/>
       <text class="relay-head" x="472" y="300">UL 924 · BYPASS</text>
-      <text class="node-detail" x="472" y="317">Shunt contact ${bypass?'CLOSED':'OPEN'}</text>
+      <text class="node-detail" x="472" y="317">Shunt contact ${c.bypass?'CLOSED':'OPEN'}</text>
       <circle cx="565" cy="275" r="4" fill="${s.normal?SENSE:OFF}"/>
       <path d="M457 327 H497 M645 327 H692" stroke="${s.em?'var(--sv-contact)':OFF}" stroke-width="3" fill="none"/>
       <circle cx="501" cy="327" r="4" fill="${s.em?EM:OFF}"/>
-      <circle cx="645" cy="327" r="4" fill="${relayFlow?EM:OFF}"/>
-      <path d="${bypass?'M505 327 H641':'M505 327 L583 312'}" stroke="${relayFlow?EM:'var(--sv-blade-off)'}" stroke-width="3.3" fill="none" stroke-linecap="round"/>`;
-    a+=fixture(847,369,186,87,'EM lights',percent);
+      <circle cx="645" cy="327" r="4" fill="${c.relayFlow?EM:OFF}"/>
+      <path d="${c.bypass?'M505 327 H641':'M505 327 L583 312'}" stroke="${c.relayFlow?EM:'var(--sv-blade-off)'}" stroke-width="3.3" fill="none" stroke-linecap="round"/>`;
+    a+=fixture(847,369,186,87,'EM lights',c.eLevel);
     a+=circ(305,411,s.em?EM:OFF);
-    a+=circ(763,411,percent?EM:OFF);
+    a+=circ(763,411,c.eLevel?EM:OFF);
     a+=caption(354,216,'NORMAL UNSWITCHED SENSE');
     a+=caption(712,316,'BYPASS PATH');
-    a+=caption(530,397,'DIMMED PATH');
+    a+=caption(530,397,s.rc==='switch'?'SWITCHED PATH':'DIMMED PATH');
     a+=caption(60,484,'EMERGENCY ALWAYS ON');
     return a;
   }
+
+  /* ---------- C: UL 1008 transfer ---------- */
   function renderC(){
-    const selected=s.normal?'normal':s.em?'em':'none';
-    const supply=selected!=='none';
-    const override=s.override&&!s.normal&&s.em;
-    const output=supply&&(s.wall||override)?100:0;
-    const chosenColor=selected==='normal'?'normal':'em';
-    const chosenSt=output?'flow':'ready';
-    const selCol=selected==='normal'?NORM:selected==='em'?EM:OFF;
+    const c=calcC();
+    const chosenColor=c.selected==='normal'?'normal':'em';
+    const chosenSt=c.powered?'flow':'ready';
+    const selCol=c.selected==='normal'?NORM:c.selected==='em'?EM:OFF;
+    const label={switch:'Wall switch',phase:'Dimmer',dim010:'0–10V dim'}[s.rc];
     let a='';
-    a+=line('M260 127 H343 V325 H423','normal',s.normal?(selected==='normal'?chosenSt:'ready'):'off');
-    a+=line('M260 414 H343 V376 H423','em',s.em?(selected==='em'?chosenSt:'ready'):'off');
-    a+=line('M666 344 H710 V309 H750',chosenColor,supply?chosenSt:'off');
-    a+=line('M870 309 H918',chosenColor,s.wall&&supply?'flow':'off');
-    a+=line('M918 309 H944',chosenColor,output?'flow':'off');
-    a+=line('M720 309 V213 H918 V309',chosenColor,override?'flow':'off');
+    a+=line('M260 127 H343 V325 H423','normal',s.normal?(c.selected==='normal'?chosenSt:'ready'):'off');
+    a+=line('M260 414 H343 V376 H423','em',s.em?(c.selected==='em'?chosenSt:'ready'):'off');
+    a+=line('M666 344 H710 V309 H750',chosenColor,c.supply?chosenSt:'off');
+    a+=line('M870 309 H918',chosenColor,c.on&&c.supply?'flow':'off');
+    a+=line('M918 309 H944',chosenColor,c.powered?'flow':'off');
+    a+=line('M720 309 V213 H918 V309',chosenColor,c.byp?'flow':'off');
+    if(c.dim010){
+      const bus=c.powered?'active':'off';
+      if(s.override){
+        a+=ctl('M810 351 V414 H878',bus);
+        a+=ctl('M984 414 H1008 V356',c.ovOpen?'off':bus);
+        a+=ovBox(878,368,c.ovOpen,s.ovr010,'IN UL 924 BYPASS');
+      } else {
+        a+=ctl('M810 351 V414 H1008 V356',bus);
+      }
+      a+=caption(818,392,'0–10V');
+    }
     a+=source(50,83,210,88,'Normal panel','Normal supply to load',s.normal,'normal','normal');
     a+=source(50,370,210,88,'EM source','Inverter / generator',s.em,'em','em');
     a+=`<rect class="relay-bg" x="423" y="234" width="243" height="175" rx="13"/>
@@ -615,14 +735,15 @@
       <circle cx="506" cy="325" r="4" fill="${s.normal?NORM:OFF}"/>
       <circle cx="506" cy="376" r="4" fill="${s.em?EM:OFF}"/>
       <circle cx="562" cy="344" r="5" fill="${selCol}"/>
-      <path d="${selected==='normal'?'M510 325 L558 344':selected==='em'?'M510 376 L558 344':'M513 343 L548 337'}" stroke="${selected==='none'?'var(--sv-blade-off)':selCol}" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <text class="node-state" x="441" y="397" fill="${selected==='normal'?NORM:selected==='em'?EM:'var(--danger)'}">${selected==='normal'?'NORMAL SOURCE SELECTED':selected==='em'?'EMERGENCY SOURCE SELECTED':'NO SOURCE AVAILABLE'}</text>`;
-    a+=roomControl(750,268,120,83,'Wall switch',s.wall);
-    a+=fixture(944,266,129,90,'EM lights',output);
+      <path d="${c.selected==='normal'?'M510 325 L558 344':c.selected==='em'?'M510 376 L558 344':'M513 343 L548 337'}" stroke="${c.selected==='none'?'var(--sv-blade-off)':selCol}" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <text class="node-state" x="441" y="397" fill="${c.selected==='normal'?NORM:c.selected==='em'?EM:'var(--danger)'}">${c.selected==='normal'?'NORMAL SOURCE SELECTED':c.selected==='em'?'EMERGENCY SOURCE SELECTED':'NO SOURCE AVAILABLE'}</text>`;
+    a+=roomControl(750,268,120,83,label,s.wall,isDim()?s.lvl:null);
+    a+=fixture(944,266,129,90,'EM lights',c.eLevel);
     a+=`<rect class="ctrl-bg" x="780" y="184" width="129" height="53" rx="9" style="stroke:${s.override?'var(--sense)':'var(--sv-stub)'};${s.override?'':'stroke-dasharray:4 4'}"/>
       <text x="844" y="205" text-anchor="middle" class="ctrl-text" style="font-size:12.5px">UL 924 bypass</text>
-      <text x="844" y="222" text-anchor="middle" class="ctrl-sub">${!s.override?'NOT INSTALLED':override?'CLOSED / ON':'OPEN / STANDBY'}</text>`;
-    a+=circ(918,309,output?EM:OFF);
+      <text x="844" y="222" text-anchor="middle" class="ctrl-sub">${!s.override?'NOT INSTALLED':c.byp?'CLOSED / ON':'OPEN / STANDBY'}</text>`;
+    a+=circ(918,309,c.powered?EM:OFF);
+    if(!s.normal&&c.eLevel>0&&c.eLevel<100)a+=caption(1073,258,'HELD AT '+s.lvl+'%','end');
     a+=caption(274,111,'NORMAL SOURCE');
     a+=caption(274,438,'ALTERNATE SOURCE');
     a+=caption(704,172,'OPTIONAL CONTROL OVERRIDE');
@@ -630,62 +751,119 @@
     return a;
   }
 
+  /* ---------- narrative ---------- */
   function explain(){
-    let txt='',note='',src='',srcsub='',lm='',dev='',devsub='',tone='';
+    let txt='',note='',src='',srcsub='',dev='',devsub='',level=0;
+    const L=s.lvl, sw=s.rc==='switch', ph=s.rc==='phase', d10=s.rc==='dim010';
+    const ctrlName=sw?'wall switch':ph?'line-voltage dimmer':'0–10V dimmer';
     if(s.mode==='control'){
-      const lit=s.em&&(!s.normal||s.wall);
+      const c=calcA(); level=c.eLevel;
       src=s.em?'Emergency circuit':'None';srcsub='No source transfer occurs';
-      lm=lit?'100% · ON':'0% · OFF';tone=lit?'amber':'red';
       if(!s.em){dev='No EM supply';devsub='Device cannot energize fixture';txt='The normal power/switch sense may still be present, but the dedicated emergency source is unavailable. The UL 924 control relay cannot energize the emergency luminaire without a usable emergency supply.';}
-      else if(!s.normal){dev='Forced ON';devsub='Normal power sense is lost';txt='Normal unswitched power is lost. The UL 924 relay ignores the normal switched signal and closes its emergency-circuit output contact. The emergency luminaire receives power from the inverter circuit even though the room switch is OFF.';}
-      else if(s.wall){dev='Following switch';devsub='Normal switched signal is ON';txt='Normal power is healthy and the room switch is ON. The relay detects the switched signal and passes the already-available emergency circuit through to the emergency luminaire. Normal lighting is also ON.';}
-      else {dev='Following switch';devsub='Normal switched signal is OFF';txt='Normal unswitched power is healthy, but the room switch is OFF. The relay holds its emergency output contact open, so the emergency luminaire is OFF even though the dedicated inverter-fed input is available. Click “Simulate outage” to see the override.';}
-      note='<strong>Electrical distinction:</strong> This device never connects normal-power conductors to the emergency load. The normal unswitched and switched conductors are sensing inputs; the luminaire remains on the emergency circuit.';
+      else if(!s.normal){
+        if(sw){dev='Forced ON';devsub='Normal power sense is lost';txt='Normal unswitched power is lost. The UL 924 relay ignores the normal switched signal and closes its emergency-circuit output contact. The emergency luminaire receives power from the inverter circuit even though the room switch is OFF.';}
+        else if(ph){dev='Forced ON';devsub='Normal power sense is lost';txt='Normal unswitched power is lost and the relay closes its emergency contact, so the emergency luminaire runs at full output. Nothing about its level changes: with a line-voltage dimmer on the normal circuit, the emergency fixture was never being dimmed in the first place.';}
+        else if(s.ovr010){dev='Forced ON · full';devsub='Power closed, 0–10V leads opened';txt='Normal unswitched power is lost. The relay closes its emergency power contact and, at the same time, opens its 0–10V override contact. That disconnects the emergency driver’s dim leads from the room dimmer. With its control pair open, the driver goes to full output, so the fixture runs at 100% whatever the dimmer was set to.';}
+        else{dev='Forced ON · held dim';devsub='No 0–10V override in relay';txt=`Normal unswitched power is lost and the relay closes its emergency power contact, but this device has no 0–10V override. The emergency driver’s dim leads are still tied to the room dimmer. A passive 0–10V dimmer can keep sinking control current with its own power gone, so the fixture comes on but may stay at the last setting (${L}% here) instead of full egress output. Turn on the override to compare.`;}
+      }
+      else if(c.on){
+        if(sw){dev='Following switch';devsub='Normal switched signal is ON';txt='Normal power is healthy and the room switch is ON. The relay detects the switched signal and passes the already-available emergency circuit through to the emergency luminaire. Normal lighting is also ON.';}
+        else if(ph){dev='Following dimmed leg';devsub='EM fixture can’t track the dimmer';txt=`Normal power is healthy and the line-voltage dimmer is at ${L}%. The normal fixtures dim, but the relay only sees that the dimmed leg is energized, so it closes its contact and the emergency fixture runs at 100%. In this arrangement the emergency fixture can’t follow a phase-cut dimmer; to dim it, the dimmer has to sit on the emergency circuit (arrangement B). This also assumes the relay’s switched-sense input accepts a dimmed leg — check the device instructions.`;}
+        else{dev='Following dimmer';devsub=`Switched leg ON · 0–10V at ${L}%`;txt=`Normal power is healthy and the dimmer is ON at ${L}%. The dimmer’s line-voltage switched leg tells the relay to close its emergency contact. Level is a separate job: the emergency driver shares the room’s 0–10V pair through the relay’s closed override contact, so it dims along with the normal fixtures.`;}
+      }
+      else{
+        dev='Following switch';devsub=sw?'Normal switched signal is OFF':'Dimmer is OFF';
+        txt=sw?'Normal unswitched power is healthy, but the room switch is OFF. The relay holds its emergency output contact open, so the emergency luminaire is OFF even though the dedicated inverter-fed input is available. Click “Simulate outage” to see the override.'
+          :`Normal unswitched power is healthy, but the dimmer is ${ph&&s.wall?'at 0%':'switched OFF'}. With no voltage on the ${ph?'dimmed':'switched'} leg, the relay holds its emergency contact open, so the emergency luminaire is OFF. Click “Simulate outage” to see the override.`;
+      }
+      note=sw?'<strong>Electrical distinction:</strong> This device never connects normal-power conductors to the emergency load. The normal unswitched and switched conductors are sensing inputs; the luminaire remains on the emergency circuit.'
+        :ph?'<strong>Tracking limitation:</strong> A UL 924 control relay switches the emergency circuit ON or OFF; it can’t pass a phase-cut dim level. Here the emergency fixture is either dark or at full output while the normal fixtures dim.'
+        :'<strong>Two separate jobs:</strong> The relay still makes the on/off decision from the dimmer’s line-voltage switched leg; the 0–10V pair only sets the level. Confirm the UL 924 device is listed with a 0–10V dimming override (not every ALCR has one), and follow its instructions for connecting the emergency driver’s control leads.';
     } else if(s.mode==='bypass'){
-      const pct=s.em?(!s.normal?100:s.dim):0;
+      const c=calcB(); level=c.eLevel;
       src=s.em?'Emergency circuit':'None';srcsub='Same source, two parallel routes';
-      lm=pct>0?`${pct}% · ${pct===100?'FULL':'DIMMED'}`:'0% · OFF';tone=pct>0?'amber':'red';
-      if(!s.em){dev='No EM supply';devsub='Neither route has power';txt='The inverter / emergency circuit is unavailable, so neither the emergency dimmer nor its bypass path can deliver energy to the emergency luminaire.';}
-      else if(!s.normal){dev='Bypass CLOSED';devsub='Dimmer shunted on EM circuit';txt='Loss of normal unswitched power activates the UL 924 shunt contact. The emergency feed goes around the emergency-circuit line-voltage dimmer and energizes the fixture at full line-voltage output, regardless of the dimmer setting.';}
-      else {dev='Bypass OPEN';devsub='Emergency dimmer is in control';txt=`Normal power is present, so the UL 924 bypass remains OPEN. The inverter-fed emergency fixture is controlled through the emergency-circuit line-voltage dimmer, currently at ${s.dim}%. The normal room switch independently controls the normal fixtures in this example.`;}
-      note='<strong>Dimming caution:</strong> This is a simplified, shunt-compatible <em>line-voltage</em> dimmer. Shorting around some dimmers is not permitted. A 0–10V or digital dimming system may still hold a lamp dim even after full line voltage is restored; use a specifically listed control-disconnect / override solution for that case.';
+      if(!s.em){dev='No EM supply';devsub='Neither route has power';txt='The inverter / emergency circuit is unavailable, so neither the emergency-circuit control nor its bypass path can deliver energy to the emergency luminaire.';}
+      else if(c.bypass){
+        if(sw){dev='Bypass CLOSED';devsub='Switch shunted on EM circuit';txt=`Loss of normal unswitched power closes the UL 924 shunt contact. The emergency feed goes around the emergency-circuit switch, so the fixture comes on at full output${s.wall?'':' even though the switch is OFF'}.`;}
+        else if(ph){dev='Bypass CLOSED';devsub='Dimmer shunted on EM circuit';txt='Loss of normal unswitched power closes the UL 924 shunt contact. The emergency feed goes around the emergency-circuit line-voltage dimmer and energizes the fixture at full line-voltage output, regardless of the dimmer setting.';}
+        else if(s.ovr010){dev='Bypass + 0–10V open';devsub='Switched leg shunted, dim leads opened';txt='Loss of normal power closes the shunt contact around the 0–10V dimmer’s switched leg, restoring power to the fixture. The device’s 0–10V override also opens the emergency driver’s dim leads, so the driver goes to full output.';}
+        else{dev='Bypass CLOSED · held dim';devsub='No 0–10V override';txt=`The shunt contact closes around the 0–10V dimmer’s switched leg, so the fixture has power. But this dimmer is on the emergency circuit, so it is still powered and still holding its 0–10V output at ${L}%. Shunting line voltage alone does not take a 0–10V fixture to full output; that takes a 0–10V override (or a separately listed dimming disconnect).`;}
+      }
+      else{
+        dev='Bypass OPEN';devsub=sw?'EM switch is in control':'EM dimmer is in control';
+        txt=sw?`Normal power is present, so the UL 924 bypass remains OPEN. The emergency fixture is controlled by the emergency-circuit switch, currently ${c.on?'ON':'OFF'}. The normal fixtures are on their own switch, operated together with it in this example.`
+          :ph?`Normal power is present, so the UL 924 bypass remains OPEN. The inverter-fed emergency fixture is controlled through the emergency-circuit line-voltage dimmer, currently ${c.on?L+'%':'OFF'}. The normal fixtures are on their own dimmer set to the same level in this example.`
+          :`Normal power is present, so the bypass remains OPEN and its 0–10V override contact stays closed. The 0–10V dimmer on the emergency circuit switches the fixture’s power through its switched leg and sets its level over the 0–10V pair, currently ${c.on?L+'%':'OFF'}.`;
+      }
+      note=sw?'<strong>Switch bypass:</strong> The emergency fixture stays on the emergency circuit at all times. The bypass only shunts around the local switch when normal power is lost.'
+        :ph?'<strong>Dimming caution:</strong> This is a simplified, shunt-compatible <em>line-voltage</em> dimmer. Shorting around some dimmers is not permitted; check the dimmer and the UL 924 device instructions.'
+        :'<strong>0–10V caution:</strong> Shunting the switched leg restores power, but the level is set by the low-voltage pair. Use a UL 924 device listed with a 0–10V override (or a separately listed dimming disconnect) so the driver is forced to full output.';
     } else {
-      const sel=s.normal?'Normal':s.em?'Emergency':'None';const ov=s.override&&!s.normal&&s.em;
-      const lit=sel!=='None'&&(s.wall||ov);
+      const c=calcC(); level=c.eLevel;
+      const sel=c.selected==='normal'?'Normal':c.selected==='em'?'Emergency':'None';
       src=sel==='None'?'None':sel+' source';srcsub=sel==='Normal'?'ATS selects normal input':sel==='Emergency'?'ATS selects inverter / generator':'Both sources are unavailable';
-      lm=lit?'100% · ON':'0% · OFF';tone=lit?'amber':'red';
       if(sel==='None'){dev='No source';devsub='Transfer cannot supply fixture';txt='The transfer switch sees neither normal nor emergency power. It has no source available for the lighting circuit. An automatic transfer switch does not create power.';}
-      else if(s.normal){dev='Normal selected';devsub='ATS connected to normal input';txt=`Normal source power is present, so the UL 1008 switch connects the lighting load to the normal circuit. The downstream room switch is ${s.wall?'ON, so the luminaire is ON':'OFF, so the luminaire is OFF'}. The alternate source is available but not connected to the load.`;}
-      else if(ov){dev='Transfer + bypass';devsub='Two different listed functions';txt='Normal power has failed. The UL 1008 transfer function connects the luminaire to the alternate source. The added UL 924 control-bypass function separately shunts the downstream wall switch, forcing the luminaire ON even when the switch is OFF.';}
-      else if(s.wall){dev='Emergency selected';devsub='ATS transfers source only';txt='Normal power has failed. The UL 1008 device connects the lighting load to the emergency source. The downstream switch happens to be ON, so the emergency luminaire is illuminated. This is source transfer, not a UL 924 control override.';}
-      else{dev='Emergency selected';devsub='Downstream switch remains OFF';txt='Normal power has failed and the UL 1008 transfer switch has connected the alternate source. But the downstream wall switch remains OFF, so the luminaire stays dark. Turn ON the “Add UL 924 control bypass” option to demonstrate how a separate—or appropriately dual-listed integrated—control override resolves this.';}
-      note='<strong>Dual-listing note:</strong> Some products are listed to both UL 1008 (transfer) and UL 924 (control bypass) for defined wiring configurations — see the Bodine GTDU and Dual-Lite BCCR20 examples under references. Those are separate functions. Do not assume every UL 1008 switch bypasses downstream controls, or that a UL 924-only relay may transfer between two sources.';
+      else if(s.normal){dev='Normal selected';devsub='ATS connected to normal input';txt=`Normal source power is present, so the UL 1008 switch connects the lighting load to the normal circuit. The downstream ${ctrlName} is ${c.on?(sw?'ON':`ON at ${L}%`):'OFF'}, so the luminaire is ${c.on?(sw?'ON':`at ${L}%`):'OFF'}. The alternate source is available but not connected to the load.`;}
+      else if(c.byp){
+        if(sw){dev='Transfer + bypass';devsub='Two different listed functions';txt='Normal power has failed. The UL 1008 transfer function connects the luminaire to the alternate source. The added UL 924 control-bypass function separately shunts the downstream wall switch, forcing the luminaire ON even when the switch is OFF.';}
+        else if(ph){dev='Transfer + bypass';devsub='Dimmer shunted after transfer';txt='Normal power has failed. The UL 1008 function connects the luminaire to the alternate source, and the added UL 924 bypass shunts the downstream line-voltage dimmer, so the fixture runs at full output regardless of the dimmer setting.';}
+        else if(s.ovr010){dev='Transfer + bypass';devsub='Switched leg shunted, 0–10V opened';txt='Normal power has failed. The UL 1008 function transfers the circuit, the UL 924 bypass shunts the dimmer’s switched leg, and its 0–10V override opens the driver’s dim leads. The fixture goes to full output.';}
+        else{dev='Transfer + bypass · held dim';devsub='Bypass has no 0–10V override';txt=`Normal power has failed. The circuit is transferred and the bypass shunts the dimmer’s switched leg, so the fixture has power. But the dimmer is downstream on the transferred circuit and still powered, holding its 0–10V output at ${L}%. Without a 0–10V override the fixture stays dimmed.`;}
+      }
+      else if(c.on){
+        if(sw){dev='Emergency selected';devsub='ATS transfers source only';txt='Normal power has failed. The UL 1008 device connects the lighting load to the emergency source. The downstream switch happens to be ON, so the emergency luminaire is illuminated. This is source transfer, not a UL 924 control override.';}
+        else{dev='Emergency selected';devsub='Dimmer still in control';txt=`Normal power has failed and the UL 1008 device has transferred the circuit to the alternate source. The downstream ${ctrlName} is now powered from that source too, so the luminaire stays at ${L}%, not full output. Transfer changes the source, not the control. Turn on “Add UL 924 control bypass” to force full output.`;}
+      }
+      else{dev='Emergency selected';devsub=`Downstream ${sw?'switch':'dimmer'} remains OFF`;txt=`Normal power has failed and the UL 1008 transfer switch has connected the alternate source. But the downstream ${ctrlName} is ${ph&&s.wall?'at 0%':'OFF'}, so the luminaire stays dark. Turn ON the “Add UL 924 control bypass” option to demonstrate how a separate—or appropriately dual-listed integrated—control override resolves this.`;}
+      note='<strong>Dual-listing note:</strong> Some products are listed to both UL 1008 (transfer) and UL 924 (control bypass) for defined wiring configurations — see the Bodine GTDU and Dual-Lite BCCR20 examples under references. Those are separate functions. Do not assume every UL 1008 switch bypasses downstream controls, or that a UL 924-only relay may transfer between two sources.'
+        +(d10?' With a 0–10V dimmer, the bypass also needs a 0–10V override; the GTDU spec sheet lists it as 0–10V override capable.':'');
     }
+    const lm=level>0?`${level}% · ${level===100?(sw?'ON':'FULL'):'DIMMED'}`:'0% · OFF';
+    const heldLow=!s.normal&&level>0&&level<100;
     $('explainText').textContent=txt;
     $('engineeringNote').innerHTML=note;
     $('metricSource').textContent=src;
     $('metricSource').className='metric-value '+(src==='None'?'red':s.mode==='transfer'&&s.normal?'green':'amber');
     $('metricSourceSub').textContent=srcsub;
     $('metricLamp').textContent=lm;
-    $('metricLamp').className='metric-value '+tone;
-    $('metricLampSub').textContent=lm.startsWith('0%')?'Fixture is not illuminated':'Emergency fixture illuminated';
+    $('metricLamp').className='metric-value '+(level>0?'amber':'red');
+    $('metricLampSub').textContent=heldLow?'Lit, but held below full output':level===0?'Fixture is not illuminated':'Emergency fixture illuminated';
     $('metricDevice').textContent=dev;
     $('metricDevice').className='metric-value';
     $('metricDeviceSub').textContent=devsub;
   }
 
+  /* ---------- UI sync ---------- */
+  const wallText={
+    control:{switch:['Normal room switch','Provides the switched sense input'],phase:['Dimmer on/off','Dimmed leg feeds the relay sense input'],dim010:['Dimmer on/off','Switched leg feeds the relay sense input']},
+    bypass:{switch:['Room switches on/off','EM-circuit switch, ganged with the normal switch'],phase:['Room dimmers on/off','EM-circuit dimmer + normal dimmer, set together'],dim010:['Room dimmers on/off','EM-circuit 0–10V dimmer + normal dimmer']},
+    transfer:{switch:['Downstream wall switch','Remains in series with the load'],phase:['Downstream dimmer on/off','In series on the transferred circuit'],dim010:['Downstream dimmer on/off','On the transferred circuit; 0–10V pair to driver']}
+  };
   function update(){
+    if(s.rc==='dim010'&&s.lvl<10)s.lvl=10;
+    const d10=s.rc==='dim010', ph=s.rc==='phase';
     $('normalBtn').setAttribute('aria-checked',String(s.normal));
     $('emBtn').setAttribute('aria-checked',String(s.em));
     $('wallBtn').setAttribute('aria-checked',String(s.wall));
     $('overrideBtn').setAttribute('aria-checked',String(s.override));
-    $('dimmer').value=s.dim;
-    $('dimOutput').textContent=s.dim+'%';
-    $('dimOffBtn').disabled=s.dim===0;
-    $('dimBlock').hidden=s.mode!=='bypass';
+    $('ovr010Btn').setAttribute('aria-checked',String(s.ovr010));
+    document.querySelectorAll('.seg-btn').forEach(b=>{const on=b.dataset.rc===s.rc;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});
+    $('roomDimBlock').hidden=s.rc==='switch';
+    $('roomDimBlock').classList.toggle('ctl-range',d10);
+    $('roomDim').min=d10?10:0;$('roomDim').value=s.lvl;$('roomDimOutput').textContent=s.lvl+'%';
+    $('dimMin').textContent=d10?'10% (low end)':'OFF / 0%';
+    $('dimHint').innerHTML=d10?'A 0–10V dimmer’s low end is typically about 10%; <strong>OFF</strong> uses its switched leg.'
+      :s.mode==='control'?'Assumes the relay’s sense input accepts a <strong>dimmed leg</strong>; check the device instructions.'
+      :s.mode==='bypass'?'Models a <strong>shunt-compatible line-voltage dimmer</strong>.'
+      :'Line-voltage dimmer <strong>in series</strong> with the transferred load.';
+    const offDisabled=ph?s.lvl===0:!s.wall;
+    $('dimOffBtn').disabled=offDisabled;
+    $('dimOffBtn').setAttribute('aria-label',ph?'Set dimmer to 0%':'Switch the 0–10V dimmer off');
     $('overrideBlock').hidden=s.mode!=='transfer';
-    $('wallTitle').textContent=s.mode==='transfer'?'Downstream wall switch':'Normal room switch';
-    $('wallDesc').textContent=s.mode==='control'?'Provides the switched sense input':s.mode==='bypass'?'Controls the normal light fixtures':'Remains in series with the load';
+    $('ovr010Block').hidden=!(d10&&(s.mode!=='transfer'||s.override));
+    $('ovrTitle').textContent=s.mode==='control'?'Relay has 0–10V override':'Bypass has 0–10V override';
+    $('ctlKey').hidden=!d10;
+    const [wt,wd]=wallText[s.mode][s.rc];$('wallTitle').textContent=wt;$('wallDesc').textContent=wd;
     $('normalDesc').textContent=s.mode==='transfer'?'Normal source to transfer switch':'Normal branch / power sense';
     $('emDesc').textContent=s.mode==='transfer'?'Alternate inverter / generator source':'Normally energized inverter output';
     document.querySelectorAll('.mode-option').forEach(btn=>{const active=btn.dataset.mode===s.mode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));});
@@ -696,24 +874,29 @@
     $('diagram').innerHTML=commonDefs()+(s.mode==='control'?renderA():s.mode==='bypass'?renderB():renderC());
     explain();
   }
+
+  /* ---------- events ---------- */
   function toggle(key){s[key]=!s[key];update();}
   function setMode(m){s.mode=m;update();}
   $('normalBtn').addEventListener('click',()=>toggle('normal'));
   $('emBtn').addEventListener('click',()=>toggle('em'));
   $('wallBtn').addEventListener('click',()=>toggle('wall'));
   $('overrideBtn').addEventListener('click',()=>toggle('override'));
-  $('dimmer').addEventListener('input',e=>{s.dim=Number(e.target.value);update()});
-  $('dimOffBtn').addEventListener('click',()=>{s.dim=0;update()});
+  $('ovr010Btn').addEventListener('click',()=>toggle('ovr010'));
+  $('roomDim').addEventListener('input',e=>{s.lvl=Number(e.target.value);update()});
+  $('dimOffBtn').addEventListener('click',()=>{if(s.rc==='phase')s.lvl=0;else s.wall=false;update()});
+  document.querySelectorAll('.seg-btn').forEach(b=>b.addEventListener('click',()=>{s.rc=b.dataset.rc;update()}));
   document.querySelectorAll('.mode-option').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
   document.querySelectorAll('tbody tr[data-mode]').forEach(tr=>{
     tr.addEventListener('click',()=>setMode(tr.dataset.mode));
     tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setMode(tr.dataset.mode)}});
   });
   const preset=(name)=>{
-    if(name==='normalOff'){s.normal=true;s.em=true;s.wall=false;s.dim=0;}
-    if(name==='normalOn'){s.normal=true;s.em=true;s.wall=true;s.dim=75;}
-    if(name==='outage'){s.normal=false;s.em=true;s.wall=false;s.dim=0;}
-    if(name==='failedEM'){s.normal=false;s.em=false;s.wall=false;s.dim=0;}
+    if(name==='normalOff'){s.normal=true;s.em=true;s.wall=false;}
+    if(name==='normalOn'){s.normal=true;s.em=true;s.wall=true;if(s.rc==='phase'&&s.lvl===0)s.lvl=40;}
+    if(name==='outage'){s.normal=false;s.em=true;s.wall=false;}
+    if(name==='outageOn'){s.normal=false;s.em=true;s.wall=true;if(s.rc==='phase'&&s.lvl===0)s.lvl=40;}
+    if(name==='failedEM'){s.normal=false;s.em=false;s.wall=false;}
     update();
   };
   document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>preset(b.dataset.preset)));
@@ -721,7 +904,7 @@
   $('diagram').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('[data-action]');if(g){e.preventDefault();toggle(g.dataset.action)}}});
   update();
 })();
+
 </script>
 </body>
 </html>
-
