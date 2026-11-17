@@ -774,7 +774,7 @@
     const c=calcD();
     const label={switch:'Room switch',phase:'Line-volt dimmer',dim010:'0–10V dimmer'}[s.rc];
     const battCol=c.onBatt?EM:c.charging?NORM:'var(--danger)';
-    const battState=c.onBatt?'ON BATTERY · EMERGENCY':c.charging?(c.normalOn?'CHARGING / STANDBY':'CHARGING / STANDBY'):s.normal?'BATTERY FAULT / MISSING':'BATTERY DEPLETED · DARK';
+    const battState=c.onBatt?'ON BATTERY':c.charging?'CHARGING / STANDBY':s.normal?'FAULT / MISSING':'DEPLETED';
     const bladeEM=!s.normal;
     const bladeCol=c.onBatt?EM:(s.normal&&c.nLevel>0)?NORM:'var(--sv-blade-off)';
     let a='';
@@ -815,7 +815,7 @@
         <rect x="680" y="423" width="3" height="8" rx="1" fill="${battCol}"/>
         ${s.em?`<rect x="649" y="421" width="${c.onBatt?20:28}" height="12" rx="1.5" fill="${battCol}" opacity=".85"/>`:`<path d="M652 432 L674 422" stroke="${battCol}" stroke-width="2" stroke-linecap="round"/>`}
         <text class="node-state" x="692" y="423" fill="${s.em?battCol:'var(--danger)'}">${battState}</text>
-        <text class="click-hint" x="692" y="438">CLICK TO TOGGLE BATTERY</text>
+        <text class="click-hint" x="692" y="438">TOGGLE BATTERY</text>
       </g>
       <text class="relay-port" x="638" y="464">UNSWITCHED HOT IN</text><text class="relay-port" x="828" y="464" text-anchor="end">EM OUT</text>`;
     /* internal transfer relay */
@@ -831,7 +831,6 @@
     a+=caption(310,397,'NORMAL UNSWITCHED HOT · CHARGER + SENSE');
     a+=caption(540,200,s.rc==='switch'?'SWITCHED LEG':'DIMMED / SWITCHED LEG','end');
     a+=caption(806,272,'AC','middle');
-    a+=caption(852,420,'BATTERY','middle');
     return a;
   }
 
