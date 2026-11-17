@@ -102,7 +102,7 @@
   /* Stage */
   .workspace{min-width:0;display:flex;flex-direction:column;gap:16px}
   .stage{overflow:hidden}
-  .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line);background:rgba(6,12,22,.35)}
+  .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line);background:rgba(6,12,22,.35)}
   .mode-option{position:relative;display:flex;gap:12px;align-items:center;text-align:left;background:transparent;border:0;border-right:1px solid var(--line);padding:15px 18px;color:var(--muted);transition:background .15s}
   .mode-option:last-child{border-right:0}
   .mode-option:hover{background:rgba(120,184,255,.05)}
@@ -339,7 +339,7 @@
     <div>
       <div class="eyebrow"><span class="brand-mark">∿</span> Interactive explainer <span class="sep">/</span> Emergency lighting controls</div>
       <h1>Emergency lighting <span class="accent">power paths</span></h1>
-      <p class="dek">See how UL 924 control devices and UL 1008 transfer switches behave. Pick an arrangement, cut normal power, operate the controls, and follow the animated path to the luminaire.</p>
+      <p class="dek">See how UL 924 control devices, UL 1008 transfer switches, and luminaires with integral battery packs behave. Pick an arrangement, cut normal power, operate the controls, and follow the animated path to the luminaire.</p>
     </div>
     <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch to light mode" aria-pressed="false" title="Switch to light mode">
       <span class="theme-icon" id="themeIcon" aria-hidden="true">☀</span><span id="themeText">Light mode</span>
@@ -355,8 +355,14 @@
           <button type="button" id="normalBtn" class="switch" role="switch" aria-label="Normal unswitched power" aria-checked="true"><span class="switch-track"></span></button>
         </div>
         <div class="control-row">
-          <div><div class="control-title">Emergency source available</div><div class="control-desc" id="emDesc">Normally energized inverter output</div></div>
+          <div><div class="control-title" id="emTitle">Emergency source available</div><div class="control-desc" id="emDesc">Normally energized inverter output</div></div>
           <button type="button" id="emBtn" class="switch em-toggle" role="switch" aria-label="Emergency power source available" aria-checked="true"><span class="switch-track"></span></button>
+        </div>
+        <div class="range-wrap" id="emPctBlock" hidden>
+          <div class="range-head"><label for="emPct">Battery-mode output</label><span class="range-right"><output id="emPctOutput" for="emPct">25%</output></span></div>
+          <input id="emPct" type="range" min="10" max="100" value="25" step="5">
+          <div class="minmax"><span>10%</span><span>100% of normal lumens</span></div>
+          <p class="hint">Emergency LED drivers usually deliver a <strong>fraction of normal lumens</strong> (often 10–40%) for 90 minutes. Adjust to match a product.</p>
         </div>
         <div class="seg-wrap" id="roomCtlBlock">
           <div class="control-title">Room control type</div>
@@ -405,6 +411,7 @@
           <button class="mode-option active" data-mode="control" aria-pressed="true"><span class="mode-n">A</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Control relay</strong><small>Follows the room control</small></span></button>
           <button class="mode-option" data-mode="bypass" aria-pressed="false"><span class="mode-n">B</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Control bypass</strong><small>Shunts an EM-circuit control</small></span></button>
           <button class="mode-option" data-mode="transfer" aria-pressed="false"><span class="mode-n">C</span><span class="mode-copy"><span class="mode-std">UL 1008</span><strong>Source transfer</strong><small>Changes the load's source</small></span></button>
+          <button class="mode-option" data-mode="battery" aria-pressed="false"><span class="mode-n">D</span><span class="mode-copy"><span class="mode-std">UL 924</span><strong>Integral battery</strong><small>Unit equipment in the luminaire</small></span></button>
         </div>
         <div class="stage-head">
           <div><div class="stage-title" id="diagramTitle">A / UL 924 switched-signal control</div><div class="stage-subtitle" id="diagramSubtitle">Emergency power is the luminaire's only supply.</div></div>
@@ -445,6 +452,7 @@
             <tr data-mode="control" tabindex="0"><td>A · UL 924 control</td><td>Emergency circuit</td><td>Ignores switched sense; closes EM output contact</td><td>Line-voltage dimmer: EM fixture was never dimmed (full on). 0–10V: full only if the relay has a 0–10V override</td></tr>
             <tr data-mode="bypass" tabindex="0"><td>B · UL 924 bypass</td><td>Emergency circuit</td><td>Shunts compatible line-voltage control</td><td>Line-voltage dimmer: shunted to full. 0–10V: power restored, but full only with a 0–10V override</td></tr>
             <tr data-mode="transfer" tabindex="0"><td>C · UL 1008 transfer</td><td>Normal circuit</td><td>Transfers source to inverter/generator; a separate listed control-override function may be needed</td><td>Stays at the dimmer setting unless a UL 924 bypass is added (with a 0–10V override for 0–10V dimming)</td></tr>
+            <tr data-mode="battery" tabindex="0"><td>D · Integral battery pack</td><td>Normal circuit, through the room control</td><td>Emergency driver inside the fixture senses loss on its unswitched hot and runs the LEDs from the battery at reduced output; no external device</td><td>Dimmer is ignored: it only reaches the AC driver, so the fixture comes on at the emergency driver's fixed output</td></tr>
           </tbody>
         </table>
       </div>
@@ -470,7 +478,7 @@
 <script>
 (() => {
   'use strict';
-  const s = { mode:'control', normal:true, em:true, wall:false, override:false, rc:'switch', lvl:40, ovr010:true };
+  const s = { mode:'control', normal:true, em:true, wall:false, override:false, rc:'switch', lvl:40, ovr010:true, emPct:25 };
   const $ = id => document.getElementById(id);
   let theme = 'dark';
   try { theme = localStorage.getItem('em-lighting-simulator-theme') === 'light' ? 'light' : 'dark'; } catch (e) { /* File access may restrict storage. */ }
@@ -493,7 +501,8 @@
   const titleMap = {
     control:['A / UL 924 switched-signal control', "Emergency power is the luminaire's only supply."],
     bypass:['B / UL 924 emergency-circuit control bypass', 'The emergency feed is present ahead of the emergency-circuit control.'],
-    transfer:['C / UL 1008 branch-circuit source transfer', 'The luminaire changes from normal power to the alternate source.']
+    transfer:['C / UL 1008 branch-circuit source transfer', 'The luminaire changes from normal power to the alternate source.'],
+    battery:['D / Integral battery pack (unit equipment)', 'The emergency source is a battery inside the luminaire; the fixture is on the normal branch circuit.']
   };
   const OFF='var(--sv-off)', EM='var(--em)', NORM='var(--normal)', SENSE='var(--sense)', CTL='var(--ctl)';
 
@@ -604,6 +613,15 @@
       else eLevel=s.lvl;
     }
     return {on,dim010,selected,supply,byp,powered,ovOpen,eLevel};
+  }
+  function calcD(){
+    const on=roomOn(), dim010=s.rc==='dim010';
+    const normalOn=s.normal&&on;
+    const nLevel=normalOn?ctlLevel():0;
+    const onBatt=!s.normal&&s.em;
+    const charging=s.normal&&s.em;
+    const eLevel=onBatt?s.emPct:nLevel;
+    return {on,dim010,normalOn,nLevel,onBatt,charging,eLevel};
   }
 
   /* ---------- A: UL 924 control ---------- */
@@ -751,6 +769,72 @@
     return a;
   }
 
+  /* ---------- D: integral battery pack ---------- */
+  function renderD(){
+    const c=calcD();
+    const label={switch:'Room switch',phase:'Line-volt dimmer',dim010:'0–10V dimmer'}[s.rc];
+    const battCol=c.onBatt?EM:c.charging?NORM:'var(--danger)';
+    const battState=c.onBatt?'ON BATTERY · EMERGENCY':c.charging?(c.normalOn?'CHARGING / STANDBY':'CHARGING / STANDBY'):s.normal?'BATTERY FAULT / MISSING':'BATTERY DEPLETED · DARK';
+    const bladeEM=!s.normal;
+    const bladeCol=c.onBatt?EM:(s.normal&&c.nLevel>0)?NORM:'var(--sv-blade-off)';
+    let a='';
+    /* luminaire enclosure first so the internal wiring draws on top of it */
+    a+=`<rect class="ctrl-bg" x="600" y="188" width="462" height="300" rx="16" style="stroke-dasharray:7 5"/>
+      <text class="fixture-label" x="616" y="212">LED luminaire · integral battery pack</text>
+      <text class="fixture-small" x="616" y="229">AC driver, listed emergency driver and battery in one housing</text>`;
+    a+=line('M257 120 H340','normal',s.normal?'flow':'off');
+    a+=line('M530 120 H841','normal',c.normalOn?'flow':'off');
+    a+=line('M548 120 V283 H622','normal',c.normalOn?'flow':'off');
+    a+=line('M294 120 V409 H622','normal',s.normal?'flow':'off');
+    a+=line('M798 283 H864','normal',c.nLevel>0?'flow':'off');
+    a+=line('M844 409 H864 V330','em',c.onBatt?'flow':(s.em?'ready':'off'));
+    if(c.dim010){
+      a+=ctl('M470 77 V62 H1055 V121 H1031',c.normalOn?'active':'off');
+      a+=ctl('M700 62 V246',c.normalOn?'active':'off');
+      a+=caption(548,80,'0–10V DIM CONTROL (CLASS 2)');
+    }
+    a+=circ(294,120,s.normal?NORM:OFF);
+    a+=circ(548,120,c.normalOn?NORM:OFF);
+    a+=fixture(841,76,190,90,'NORMAL lights',c.nLevel);
+    a+=caption(660,104,s.rc==='phase'?'NORMAL DIMMED LEG':'NORMAL SWITCHED');
+    a+=source(48,76,209,88,'Normal panel','Normal lighting branch',s.normal,'normal','normal');
+    a+=roomControl(340,77,190,86,label,s.wall,isDim()?s.lvl:null);
+    /* AC driver */
+    a+=`<rect class="ctrl-bg" x="622" y="246" width="176" height="74" rx="9"/>
+      <text class="ctrl-text" x="636" y="268">AC LED driver</text>
+      <text class="ctrl-sub" x="636" y="286">${c.normalOn?(s.rc==='switch'?'ON · 100%':'ON · '+s.lvl+'%'):'OFF · no switched leg'}</text>
+      <text class="relay-port" x="636" y="308">${c.dim010?'0–10V PAIR → AC DRIVER ONLY':'SWITCHED LINE IN → LED OUT'}</text>`;
+    /* Emergency driver + battery */
+    a+=`<rect class="relay-bg" x="622" y="348" width="222" height="122" rx="13"/>
+      <text class="relay-head" x="638" y="374">UL 924 · EM DRIVER</text>
+      <text class="node-detail" x="638" y="392">Charger · battery · inverter · transfer</text>
+      <path class="relay-divider" d="M638 400 H828"/>
+      <g class="clickable" data-action="em" role="button" tabindex="0" aria-label="Toggle battery pack health: ${s.em?'currently charged':'currently failed'}">
+        <rect class="ctrl-bg" x="636" y="406" width="194" height="42" rx="8"/>
+        <rect x="646" y="418" width="34" height="18" rx="3" fill="none" stroke="${battCol}" stroke-width="1.8"/>
+        <rect x="680" y="423" width="3" height="8" rx="1" fill="${battCol}"/>
+        ${s.em?`<rect x="649" y="421" width="${c.onBatt?20:28}" height="12" rx="1.5" fill="${battCol}" opacity=".85"/>`:`<path d="M652 432 L674 422" stroke="${battCol}" stroke-width="2" stroke-linecap="round"/>`}
+        <text class="node-state" x="692" y="423" fill="${s.em?battCol:'var(--danger)'}">${battState}</text>
+        <text class="click-hint" x="692" y="438">CLICK TO TOGGLE BATTERY</text>
+      </g>
+      <text class="relay-port" x="638" y="464">UNSWITCHED HOT IN</text><text class="relay-port" x="828" y="464" text-anchor="end">EM OUT</text>`;
+    /* internal transfer relay */
+    a+=`<path d="M860 283 H866 M860 330 H866 M888 306 H900" stroke="var(--sv-stub)" stroke-width="3" fill="none"/>
+      <circle cx="866" cy="283" r="4" fill="${c.nLevel>0?NORM:OFF}"/>
+      <circle cx="866" cy="330" r="4" fill="${c.onBatt?EM:OFF}"/>
+      <circle cx="888" cy="306" r="5" fill="${c.eLevel>0?(c.onBatt?EM:NORM):OFF}"/>
+      <path d="${bladeEM?'M869 328 L885 308':'M869 285 L885 304'}" stroke="${bladeCol}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    a+=fixture(900,256,146,100,'LED array',c.eLevel);
+    a+=caption(900,378,'INTERNAL TRANSFER RELAY');
+    a+=caption(900,394,`EM OUTPUT ≈ ${s.emPct}% · 90 MIN`);
+    a+=caption(900,410,c.onBatt?'RUNNING ON BATTERY':s.normal?'BATTERY FLOATING ON CHARGE':'NO BATTERY · NO OUTPUT');
+    a+=caption(310,397,'NORMAL UNSWITCHED HOT · CHARGER + SENSE');
+    a+=caption(540,200,s.rc==='switch'?'SWITCHED LEG':'DIMMED / SWITCHED LEG','end');
+    a+=caption(806,272,'AC','middle');
+    a+=caption(852,420,'BATTERY','middle');
+    return a;
+  }
+
   /* ---------- narrative ---------- */
   function explain(){
     let txt='',note='',src='',srcsub='',dev='',devsub='',level=0;
@@ -798,6 +882,27 @@
       note=sw?'<strong>Switch bypass:</strong> The emergency fixture stays on the emergency circuit at all times. The bypass only shunts around the local switch when normal power is lost.'
         :ph?'<strong>Dimming caution:</strong> This is a simplified, shunt-compatible <em>line-voltage</em> dimmer. Shorting around some dimmers is not permitted; check the dimmer and the UL 924 device instructions.'
         :'<strong>0–10V caution:</strong> Shunting the switched leg restores power, but the level is set by the low-voltage pair. Use a UL 924 device listed with a 0–10V override (or a separately listed dimming disconnect) so the driver is forced to full output.';
+    } else if(s.mode==='battery'){
+      const c=calcD(); level=c.eLevel;
+      const P=s.emPct;
+      src=s.normal?'Normal circuit':c.onBatt?'Integral battery':'None';
+      srcsub=s.normal?'AC driver fed through the room control':c.onBatt?'EM driver runs the LEDs from the battery':'Battery depleted, failed, or missing';
+      if(c.onBatt){
+        dev='On battery';devsub='Loss sensed on the unswitched hot';
+        const tail=sw?'The room switch position does not matter: the switched leg never reaches the emergency driver, which has its own unswitched feed.'
+          :ph?`The dimmer setting (${s.wall?L+'%':'OFF'}) does not matter: the dimmed leg only ever reached the AC driver.`
+          :`The 0–10V dimmer (${s.wall?L+'%':'OFF'}) does not matter: the control pair only connects to the AC driver, and the emergency driver drives the LED array at its own fixed level.`;
+        txt=`Normal unswitched power is lost and the normal lights go dark. The emergency driver inside the battery fixture senses the loss on its unswitched hot, disconnects the LED array from the AC driver, and runs it (or a dedicated emergency section of it) from the battery at about ${P}% of normal lumens. ${tail}`;
+      }
+      else if(!s.normal){dev='No battery';devsub='Nothing else can supply this fixture';txt='Normal power is lost, so the normal lights go dark, and the battery is depleted, failed, or missing. Unlike arrangements A to C, no inverter or generator circuit reaches this fixture, so there is no alternate source at all. The luminaire goes dark. This is the failure mode periodic battery testing is meant to catch before an outage does.';}
+      else if(!s.em){dev='Battery fault';devsub='Normal lighting unaffected';txt=`Normal power is present, so the fixture behaves like any other luminaire: the AC driver follows the ${ctrlName}, currently ${c.on?(sw?'ON':`at ${L}%`):'OFF'}. But the battery pack has failed or is missing. Nothing visible changes until an outage, when this fixture would go dark. Only the fixture's charge indicator and test switch would warn you, which is why monthly and annual tests are required.`;}
+      else{
+        dev='Charging / standby';devsub='Transfer relay resting on the AC driver';
+        txt=c.on?`Normal power is present. The ${ctrlName} controls the normal lights and the battery fixture together: its AC driver runs the LED array at ${sw?'full output':L+'%'}, exactly like the normal fixtures beside it. The unswitched hot keeps the emergency driver's charger energized, so the battery floats on charge and the internal transfer relay rests on the AC-driver side. Click “Simulate outage” to see the transfer.`
+          :`Normal power is present but the ${ctrlName} is ${ph&&s.wall?'at 0%':'OFF'}, so the normal lights are off, the battery fixture's AC driver is idle, and its LED array is dark. The unswitched hot still feeds the emergency driver's charger, so the battery stays charged and ready. Click “Simulate outage” to see the transfer.`;
+      }
+      note='<strong>Everything is in the fixture:</strong> No central inverter, no transfer switch, and no ceiling relay. The emergency function is a listed emergency driver and battery inside the luminaire, fed from the normal lighting branch circuit. NEC Article 700 requires unit equipment to be on the same branch circuit that serves the normal lighting in the area, connected ahead of any local switches, which is why the unswitched hot is tapped before the room control. Trade-offs: reduced emergency lumens (often 10–40% of normal), a 90-minute battery with a limited service life, and testing and maintenance distributed across every fixture instead of at one inverter.'
+        +(d10||ph?' With a dimmer, only the AC driver sees the dim control; the emergency driver has its own fixed output, so no 0–10V override or bypass is needed.':'');
     } else {
       const c=calcC(); level=c.eLevel;
       const sel=c.selected==='normal'?'Normal':c.selected==='em'?'Emergency':'None';
@@ -823,11 +928,11 @@
     $('explainText').textContent=txt;
     $('engineeringNote').innerHTML=note;
     $('metricSource').textContent=src;
-    $('metricSource').className='metric-value '+(src==='None'?'red':s.mode==='transfer'&&s.normal?'green':'amber');
+    $('metricSource').className='metric-value '+(src==='None'?'red':(s.mode==='transfer'||s.mode==='battery')&&s.normal?'green':'amber');
     $('metricSourceSub').textContent=srcsub;
     $('metricLamp').textContent=lm;
     $('metricLamp').className='metric-value '+(level>0?'amber':'red');
-    $('metricLampSub').textContent=heldLow?'Lit, but held below full output':level===0?'Fixture is not illuminated':'Emergency fixture illuminated';
+    $('metricLampSub').textContent=heldLow?(s.mode==='battery'?'Reduced output from the battery pack':'Lit, but held below full output'):level===0?'Fixture is not illuminated':'Emergency fixture illuminated';
     $('metricDevice').textContent=dev;
     $('metricDevice').className='metric-value';
     $('metricDeviceSub').textContent=devsub;
@@ -837,7 +942,8 @@
   const wallText={
     control:{switch:['Normal room switch','Provides the switched sense input'],phase:['Dimmer on/off','Dimmed leg feeds the relay sense input'],dim010:['Dimmer on/off','Switched leg feeds the relay sense input']},
     bypass:{switch:['Room switches on/off','EM-circuit switch, ganged with the normal switch'],phase:['Room dimmers on/off','EM-circuit dimmer + normal dimmer, set together'],dim010:['Room dimmers on/off','EM-circuit 0–10V dimmer + normal dimmer']},
-    transfer:{switch:['Downstream wall switch','Remains in series with the load'],phase:['Downstream dimmer on/off','In series on the transferred circuit'],dim010:['Downstream dimmer on/off','On the transferred circuit; 0–10V pair to driver']}
+    transfer:{switch:['Downstream wall switch','Remains in series with the load'],phase:['Downstream dimmer on/off','In series on the transferred circuit'],dim010:['Downstream dimmer on/off','On the transferred circuit; 0–10V pair to driver']},
+    battery:{switch:['Room switch','Switched leg feeds the AC driver only'],phase:['Dimmer on/off','Dimmed leg feeds the AC driver only'],dim010:['Dimmer on/off','Switched leg + 0–10V pair to the AC driver only']}
   };
   function update(){
     if(s.rc==='dim010'&&s.lvl<10)s.lvl=10;
@@ -855,23 +961,28 @@
     $('dimHint').innerHTML=d10?'A 0–10V dimmer’s low end is typically about 10%; <strong>OFF</strong> uses its switched leg.'
       :s.mode==='control'?'Assumes the relay’s sense input accepts a <strong>dimmed leg</strong>; check the device instructions.'
       :s.mode==='bypass'?'Models a <strong>shunt-compatible line-voltage dimmer</strong>.'
+      :s.mode==='battery'?'The dimmer only reaches the <strong>AC driver</strong>; battery-mode output is fixed by the emergency driver.'
       :'Line-voltage dimmer <strong>in series</strong> with the transferred load.';
     const offDisabled=ph?s.lvl===0:!s.wall;
     $('dimOffBtn').disabled=offDisabled;
     $('dimOffBtn').setAttribute('aria-label',ph?'Set dimmer to 0%':'Switch the 0–10V dimmer off');
     $('overrideBlock').hidden=s.mode!=='transfer';
-    $('ovr010Block').hidden=!(d10&&(s.mode!=='transfer'||s.override));
+    $('ovr010Block').hidden=!(d10&&s.mode!=='battery'&&(s.mode!=='transfer'||s.override));
     $('ovrTitle').textContent=s.mode==='control'?'Relay has 0–10V override':'Bypass has 0–10V override';
+    $('emPctBlock').hidden=s.mode!=='battery';
+    $('emPct').value=s.emPct;$('emPctOutput').textContent=s.emPct+'%';
     $('ctlKey').hidden=!d10;
     const [wt,wd]=wallText[s.mode][s.rc];$('wallTitle').textContent=wt;$('wallDesc').textContent=wd;
-    $('normalDesc').textContent=s.mode==='transfer'?'Normal source to transfer switch':'Normal branch / power sense';
-    $('emDesc').textContent=s.mode==='transfer'?'Alternate inverter / generator source':'Normally energized inverter output';
+    $('normalDesc').textContent=s.mode==='transfer'?'Normal source to transfer switch':s.mode==='battery'?'Normal branch · unswitched hot to charger':'Normal branch / power sense';
+    $('emTitle').textContent=s.mode==='battery'?'Battery pack healthy':'Emergency source available';
+    $('emBtn').setAttribute('aria-label',s.mode==='battery'?'Battery pack charged and healthy':'Emergency power source available');
+    $('emDesc').textContent=s.mode==='transfer'?'Alternate inverter / generator source':s.mode==='battery'?'Charged, in-fixture battery; OFF = failed or depleted':'Normally energized inverter output';
     document.querySelectorAll('.mode-option').forEach(btn=>{const active=btn.dataset.mode===s.mode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));});
     document.querySelectorAll('tbody tr[data-mode]').forEach(tr=>tr.classList.toggle('active',tr.dataset.mode===s.mode));
     const [ttl,sub]=titleMap[s.mode];$('diagramTitle').textContent=ttl;$('diagramSubtitle').textContent=sub;
     $('statusLabel').textContent=s.normal?'NORMAL POWER PRESENT':'NORMAL POWER LOST';
     $('statusBadge').classList.toggle('dark',!s.normal);
-    $('diagram').innerHTML=commonDefs()+(s.mode==='control'?renderA():s.mode==='bypass'?renderB():renderC());
+    $('diagram').innerHTML=commonDefs()+(s.mode==='control'?renderA():s.mode==='bypass'?renderB():s.mode==='battery'?renderD():renderC());
     explain();
   }
 
@@ -884,6 +995,7 @@
   $('overrideBtn').addEventListener('click',()=>toggle('override'));
   $('ovr010Btn').addEventListener('click',()=>toggle('ovr010'));
   $('roomDim').addEventListener('input',e=>{s.lvl=Number(e.target.value);update()});
+  $('emPct').addEventListener('input',e=>{s.emPct=Number(e.target.value);update()});
   $('dimOffBtn').addEventListener('click',()=>{if(s.rc==='phase')s.lvl=0;else s.wall=false;update()});
   document.querySelectorAll('.seg-btn').forEach(b=>b.addEventListener('click',()=>{s.rc=b.dataset.rc;update()}));
   document.querySelectorAll('.mode-option').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
